@@ -20,15 +20,15 @@ export default function BusinessListByCategory() {
       headerStyle: {
         backgroundColor: Colors.PRIMARY,
       },
-      headerTintColor: Colors.WHITE, // Change the back button and title color
-      headerBackTitle: 'Back', // Text for the back button
+      headerTintColor: Colors.WHITE,
+      headerBackTitle: 'Back',
       headerBackTitleStyle: {
-        fontFamily: 'outfit-bold', // Customize font
+        fontFamily: 'outfit-bold',
         fontSize: 16,
         color: Colors.WHITE,
       },
       headerTitleStyle: {
-        fontFamily: 'outfit-bold', // Customize title font
+        fontFamily: 'outfit-bold',
         fontSize: 18,
         color: Colors.WHITE,
       },
@@ -37,33 +37,45 @@ export default function BusinessListByCategory() {
   }, []);
 
   /**
-   * Used to get business list by category
+   * Fetch business list by category.
    */
   const getVendorList = async () => {
     setLoading(true);
-    const q = query(
-      collection(db, 'VendorList'),
-      where('category', '==', category)
-    );
-    const querySnapshot = await getDocs(q);
 
-    querySnapshot.forEach((doc) => {
-      console.log(doc.data());
-      setVendorList((prev) => [...prev, { id: doc?.id, ...doc.data() }]);
-    });
+    // Reset vendorList before fetching new data
+    setVendorList([]);
+
+    try {
+      const q = query(
+        collection(db, 'VendorList'),
+        where('category', '==', category)
+      );
+      const querySnapshot = await getDocs(q);
+
+      // Collect all documents into a new array
+      const fetchedVendors = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      // Update vendorList with the new data
+      setVendorList(fetchedVendors);
+    } catch (error) {
+      console.error('Error fetching vendor list:', error);
+    }
+
     setLoading(false);
   };
 
   return (
     <View>
-      {vendorList?.length > 0 && loading == false ? (
+      {vendorList?.length > 0 && !loading ? (
         <FlatList
           data={vendorList}
           onRefresh={getVendorList}
           refreshing={loading}
-          renderItem={({ item, index }) => (
-            <BusinessListCard business={item} key={index} />
-          )}
+          keyExtractor={(item) => item.id} // Use unique ID as key
+          renderItem={({ item }) => <BusinessListCard business={item} />}
         />
       ) : loading ? (
         <ActivityIndicator
