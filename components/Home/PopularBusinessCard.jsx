@@ -53,7 +53,7 @@ export default function PopularBusinessCard({business}) {
                     fontFamily:'outfit',
                     backgroundColor:Colors.PRIMARY,
                     color:'#fff',
-                    padding:3,
+                    padding:4,
                     fontSize:10,
                     borderRadius:5,
                 }}
