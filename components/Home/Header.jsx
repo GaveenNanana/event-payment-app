@@ -57,6 +57,7 @@ export default function Header() {
         }}>
             <Ionicons name="search" size={24} color={Colors.PRIMARY} />
             <TextInput placeholder="Search..."
+            placeholderTextColor={'#888'}
             style={{
                 fontFamily:'outfit',
                 fontSize:16,

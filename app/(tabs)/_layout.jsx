@@ -22,6 +22,11 @@ export default function TabLayout() {
         tabBarLabel: 'Pay',
         tabBarIcon: ({color}) =><Ionicons name="scan" size={24} color={color} /> }}
         />
+      <Tabs.Screen name="Explore" 
+      options={{
+        tabBarLabel: 'Explore',
+        tabBarIcon:({color})=><Ionicons name="search" size={24} color={color} />}}
+      />
       <Tabs.Screen name="Profile" 
       options={{
         tabBarLabel: 'Profile',
