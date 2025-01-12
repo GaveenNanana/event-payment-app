@@ -1,4 +1,4 @@
-import { View, Text, Image, TouchableOpacity, Alert, ToastAndroid } from 'react-native'
+import { View, Text, Image, TouchableOpacity, Alert, ScrollView } from 'react-native'
 import React from 'react'
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';

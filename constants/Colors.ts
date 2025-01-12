@@ -25,4 +25,5 @@ export const Colors = {
   },
   PRIMARY: '#7f57f1',
   WHITE: '#ffffff',
+  GRAY: '#E2E2E2',
 };
