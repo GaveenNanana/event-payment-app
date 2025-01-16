@@ -1,10 +1,9 @@
-import { View, Text, TextInput, TouchableOpacity, ToastAndroid, FlatList, Image } from 'react-native'
-import React, { useState } from 'react'
-import { Rating } from 'react-native-ratings'
-import { Colors } from '../../constants/Colors';
-import { arrayUnion, doc, updateDoc } from 'firebase/firestore';
-import { db } from '../../configs/FirebaseConfig';
-// import { useUser } from '@clerk/clerk-expo';
+import { View, Text, TextInput, TouchableOpacity, FlatList, Image, Alert } from "react-native";
+import React, { useState } from "react";
+import { Rating } from "react-native-ratings";
+import { Colors } from "../../constants/Colors";
+import { arrayRemove, arrayUnion, doc, updateDoc } from "firebase/firestore";
+import { db } from "../../configs/FirebaseConfig";
 
 export default function Reviews({ business }) {
     // Dummy user
@@ -12,11 +11,12 @@ export default function Reviews({ business }) {
         role: "user",
         email: "user@example.com",
         name: "Test User",
-        imageUrl: "https://example.com/user-image.png",
+        image: "https://cdn-icons-png.flaticon.com/128/2202/2202112.png", // Placeholder image
     };
 
     const [rating, setRating] = useState(4);
     const [userInput, setUserInput] = useState("");
+    const [reviews, setReviews] = useState(business?.reviews || []);
 
     const onSubmit = async () => {
         if (!userInput) {
@@ -29,19 +29,23 @@ export default function Reviews({ business }) {
             return;
         }
 
+        const newReview = {
+            rating: rating,
+            comment: userInput,
+            userName: user.name,
+            userImage: user.image, // Correct field
+            userEmail: user.email,
+        };
+
         try {
             const docRef = doc(db, "VendorList", business?.id);
 
             await updateDoc(docRef, {
-                reviews: arrayUnion({
-                    rating: rating,
-                    comment: userInput,
-                    userName: user.name,
-                    userImage: user.imageUrl,
-                    userEmail: user.email,
-                }),
+                reviews: arrayUnion(newReview),
             });
 
+            // Update local state
+            setReviews((prev) => [...prev, newReview]);
             setUserInput("");
             setRating(4);
 
@@ -51,14 +55,54 @@ export default function Reviews({ business }) {
         }
     };
 
-    const reviews = business?.reviews || [];
+    const onDeleteReview = async (review) => {
+        if (!business?.id) {
+            console.error("Invalid business ID!");
+            return;
+        }
+
+        Alert.alert(
+            "Delete Review",
+            "Are you sure you want to delete your review?",
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                    text: "Delete",
+                    style: "destructive",
+                    onPress: async () => {
+                        try {
+                            const docRef = doc(db, "VendorList", business?.id);
+
+                            console.log("Deleting Review:", review); // Debug: Log the review to be deleted
+
+                            await updateDoc(docRef, {
+                                reviews: arrayRemove(review), // Exact match required
+                            });
+
+                            // Update local state
+                            setReviews((prev) =>
+                                prev.filter(
+                                    (item) =>
+                                        item.comment !== review.comment ||
+                                        item.userEmail !== review.userEmail // Compare key fields
+                                )
+                            );
+
+                            console.log("Review deleted successfully!");
+                        } catch (error) {
+                            console.error("Error deleting review:", error);
+                        }
+                    },
+                },
+            ]
+        );
+    };
 
     return (
         <View style={{ padding: 20, backgroundColor: "#fff" }}>
-            <Text style={{ fontFamily: "outfit-bold", fontSize: 20 }}>
-                Reviews
-            </Text>
+            <Text style={{ fontFamily: "outfit-bold", fontSize: 20 }}>Reviews</Text>
 
+            {/* Submit Review Section */}
             <View>
                 <Rating
                     showRating={false}
@@ -129,7 +173,7 @@ export default function Reviews({ business }) {
                                 borderRadius: 99,
                             }}
                         />
-                        <View style={{ display: "flex", gap: 5 }}>
+                        <View style={{ flex: 1, display: "flex", gap: 5 }}>
                             <Text
                                 style={{
                                     fontFamily: "outfit-medium",
@@ -145,6 +189,20 @@ export default function Reviews({ business }) {
                             />
                             <Text>{item.comment}</Text>
                         </View>
+                        {/* Show Delete Button Only for the Logged-in User's Reviews */}
+                        {item.userEmail === user.email && (
+                            <TouchableOpacity onPress={() => onDeleteReview(item)}>
+                                <Text
+                                    style={{
+                                        color: "red",
+                                        fontSize: 14,
+                                        fontFamily: "outfit-medium",
+                                    }}
+                                >
+                                    Delete
+                                </Text>
+                            </TouchableOpacity>
+                        )}
                     </View>
                 ))}
             </View>
