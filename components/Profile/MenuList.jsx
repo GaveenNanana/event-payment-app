@@ -48,7 +48,7 @@ export default function MenuList() {
             // Handle app sharing
             Share.share({
                 message:
-                    'Download the Business Directory App by Tubeguruji! Download URL: https://example.com',
+                    'Download the Event Payment App now and enjoy the best event experience! https://event-payment-35c02.web.app/',
             });
             return;
         }
