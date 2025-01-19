@@ -1,34 +1,35 @@
-import { View, Text, StyleSheet, SafeAreaView, Pressable } from "react-native";
-import { Link, Stack } from "expo-router";
-
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from "react-native";
 import { useCameraPermissions } from "expo-camera";
+import { useRouter } from "expo-router";
 
-export default function Home() {
+export default function Pay() {
   const [permission, requestPermission] = useCameraPermissions();
-
-  const isPermissionGranted = Boolean(permission?.granted);
+  const router = useRouter();
 
   return (
     <SafeAreaView style={styles.container}>
-      <Stack.Screen options={{ title: "Overview", headerShown: false }} />
       <Text style={styles.title}>QR Code Scanner</Text>
-      <View style={{ gap: 20 }}>
-        <Pressable onPress={requestPermission}>
-          <Text style={styles.buttonStyle}>Request Permissions</Text>
-        </Pressable>
-        <Link href={"/scanner"} asChild>
-          <Pressable disabled={!isPermissionGranted}>
-            <Text
-              style={[
-                styles.buttonStyle,
-                { opacity: !isPermissionGranted ? 0.5 : 1 },
-              ]}
-            >
-              Scan Code
-            </Text>
-          </Pressable>
-        </Link>
-      </View>
+      
+      <TouchableOpacity onPress={requestPermission} style={styles.button}>
+        <Text style={styles.buttonText}>Request Permissions</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        disabled={!permission?.granted}
+        onPress={() => {
+          if (permission?.granted) {
+            router.push("/scanner/Camera");  // Navigate to scanner page
+          } else {
+            alert("Please allow camera access to continue.");
+          }
+        }}
+        style={[
+          styles.button,
+          { backgroundColor: permission?.granted ? "#0E7AFE" : "gray" },
+        ]}
+      >
+        <Text style={styles.buttonText}>Scan Code</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -38,16 +39,22 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     backgroundColor: "black",
-    justifyContent: "space-around",
-    paddingVertical: 80,
+    justifyContent: "center",
+    padding: 20,
   },
   title: {
     color: "white",
-    fontSize: 40,
+    fontSize: 32,
+    marginBottom: 20,
   },
-  buttonStyle: {
-    color: "#0E7AFE",
-    fontSize: 20,
-    textAlign: "center",
+  button: {
+    backgroundColor: "#0E7AFE",
+    padding: 15,
+    borderRadius: 10,
+    marginVertical: 10,
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 18,
   },
 });
