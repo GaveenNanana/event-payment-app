@@ -54,6 +54,8 @@
       },
       "eas": {
         "projectId": "1027580c-eda6-4e5d-af5e-755c61c20aca"
+      },
+        "stripePublishableKey": "your-publishable-key"
       }
     },
     "runtimeVersion": "1.0.0",
@@ -61,4 +63,4 @@
       "url": "https://u.expo.dev/1027580c-eda6-4e5d-af5e-755c61c20aca"
     }
   }
-}
+
