@@ -38,11 +38,12 @@ export default function MenuList() {
 
     const router = useRouter();
 
-    const onMenuClick = (item) => {
+    const onMenuClick = async(item) => {
         if (item.path === 'logout') {
             // Handle logout action
-            signOut();
-            return;
+            signOut(auth)
+            await RemoveLocalStorage();
+             router.replace('/login')
         }
         if (item.path === 'share') {
             // Handle app sharing

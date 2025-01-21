@@ -1,10 +1,12 @@
 import { CameraView } from "expo-camera";
 import { useState, useRef } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { useLocalSearchParams, useRouter } from 'expo-router';
 
 export default function CameraScreen() {
   const [scanned, setScanned] = useState(false);
   const qrLock = useRef(false);
+    const router = useRouter();
 
   const handleBarCodeScanned = ({ data }) => {
     if (data && !qrLock.current) {
@@ -29,8 +31,12 @@ export default function CameraScreen() {
           {/* Transparent scanning box */}
           <View style={styles.overlayBox} />
         </View>
+        <TouchableOpacity style={styles.doneButton} onPress={() => router.push('/Pay')}>
+              <Text style={styles.doneButtonText}>Cancel</Text>
+            </TouchableOpacity>
         <Text style={styles.scanText}>Scan a QR code</Text>
       </CameraView>
+
     </View>
   );
 }
@@ -62,4 +68,20 @@ const styles = StyleSheet.create({
     color: "white",
     marginTop: 40,
   },
+  doneButton: {
+    position: 'absolute',   // Position the button absolutely
+    bottom: 50,             // Distance from the bottom
+    alignSelf: 'center',     // Center horizontally
+    backgroundColor: '#0E7AFE',
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 10,
+  },
+  doneButtonText: {
+    fontSize: 18,
+    color: 'white',
+    fontWeight: 'bold',
+  },
 });
+
+

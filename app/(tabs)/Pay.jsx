@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Image } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 import { useCameraPermissions } from "expo-camera";
 import { useRouter } from "expo-router";
 import { useEffect } from "react";
@@ -9,8 +9,8 @@ export default function Pay() {
   const router = useRouter();
 
   useEffect(() => {
-    if (permission?.granted) {
-      router.push("/scanner/Camera");  // Automatically navigate if permission is already granted
+    if (permission && permission.granted) {
+      // Just update state or UI instead of auto-navigation
     }
   }, [permission]);
 
@@ -28,37 +28,24 @@ export default function Pay() {
   };
 
   return (
-  
-<View style={{
-            display:'flex',
-            alignItems:'center',
-            marginTop:40
-        }}>
-
-        <View style={styles.subContainer}>
-            <Text style={{
-                fontSize:30,
-                fontFamily:'outfit-bold',
-                textAlign:'center',
-                padding:40,
-            }}>Scan to pay</Text>
-        <Image source={require('../../assets/images/scan.png')}
-            style={{
-                width:300,
-                height:540,
-            }}
+    <View style={styles.container}>
+      <View style={styles.subContainer}>
+        <Text style={styles.title}>Scan to pay</Text>
+        <Image
+          source={require('../../assets/images/scan.png')}
+          style={styles.image}
         />
-        </View>
+      </View>
 
-         <TouchableOpacity
+      <TouchableOpacity
         onPress={handlePress}
         style={[styles.button, { backgroundColor: permission?.granted ? Colors.PRIMARY : "gray" }]}
-         >
+      >
         <Text style={styles.buttonText}>
           {permission?.granted ? "Continue" : "Request Permission & Scan"}
         </Text>
-        </TouchableOpacity>
-        </View>
+      </TouchableOpacity>
+    </View>
   );
 }
 
@@ -70,16 +57,24 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     padding: 20,
   },
+  subContainer: {
+    alignItems: "center",
+    marginTop: 40,
+  },
   title: {
-    color: "white",
-    fontSize: 32,
-    marginBottom: 20,
+    fontSize: 30,
+    fontFamily: "outfit-bold",
+    textAlign: "center",
+    padding: 40,
+  },
+  image: {
+    width: 300,
+    height: 540,
   },
   button: {
-    backgroundColor:Colors.PRIMARY,
-    padding:16,
-    paddingHorizontal:32,
-    borderRadius:99,
+    padding: 16,
+    paddingHorizontal: 32,
+    borderRadius: 99,
     marginTop: 32,
   },
   buttonText: {

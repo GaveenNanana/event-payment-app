@@ -10,7 +10,6 @@ import { StripeProvider } from '@stripe/stripe-react-native';
 
 export default function TabLayout() {
   return (
-    <StripeProvider publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY}>
     <Tabs
       screenOptions={{
         headerShown: false,
@@ -53,6 +52,5 @@ export default function TabLayout() {
         }}
       />
     </Tabs>
-    </StripeProvider>
   );
 }

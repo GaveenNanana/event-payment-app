@@ -1,5 +1,5 @@
-import { View, Text } from 'react-native'
-import React from 'react'
+import { View, Text, TouchableOpacity } from 'react-native'
+import React, { useEffect, useState } from 'react'
 import UserIntro from '../../components/Profile/UserIntro'
 import MenuList from '../../components/Profile/MenuList'
 
