@@ -2,7 +2,6 @@ import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native'
 import React from 'react'
 import { Colors } from "../../constants/Colors";
 import { useRouter } from 'expo-router'
-// import { setLocalStorage } from '../../service/Storage';
 
 export default function LoginScreen() {
 
@@ -33,7 +32,7 @@ export default function LoginScreen() {
                 fontWeight:'bold',
                 color:'white',
                 textAlign:'center'
-            }}>Stay on Track, Stay Healthy!</Text>
+            }}>Event Payments Made Easy!</Text>
 
             <Text style={{
                 color:'white',
@@ -55,7 +54,8 @@ export default function LoginScreen() {
             </TouchableOpacity>
             <Text style={{
                 color:'white',
-                marginTop:20
+                marginTop:20,
+                textAlign:'center',
             }}>Note: By Clicking Continue button, you will agree to our terms and condition</Text>
         
        

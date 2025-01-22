@@ -4,6 +4,7 @@ import { Colors } from "../../constants/Colors";
 import { useRouter } from 'expo-router'
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../../configs/FirebaseConfig';
+import { setLocalStorage } from '../../service/Storage';
 
 export default function SignIn() {
 

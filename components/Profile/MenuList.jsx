@@ -2,6 +2,9 @@ import { View, Text, FlatList, Image, TouchableOpacity, Share } from 'react-nati
 import React from 'react';
 import { Colors } from './../../constants/Colors';
 import { useRouter } from 'expo-router';
+import { auth } from 'firebase/auth';
+import { RemoveLocalStorage } from '../../service/Storage';
+import { signOut } from 'firebase/auth';
 
 export default function MenuList() {
     // Dummy signOut function for now
@@ -43,7 +46,7 @@ export default function MenuList() {
             // Handle logout action
             signOut(auth)
             await RemoveLocalStorage();
-             router.replace('/login')
+            router.replace('(tabs)');
         }
         if (item.path === 'share') {
             // Handle app sharing

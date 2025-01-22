@@ -1,14 +1,34 @@
 import { View, Text } from 'react-native';
-import React from 'react';
-import { Tabs } from 'expo-router';
+import React, { useEffect, useState } from 'react'
+import { Tabs, useRouter } from 'expo-router';
 import Foundation from '@expo/vector-icons/Foundation';
 import Feather from '@expo/vector-icons/Feather';
 import { Colors } from './../../constants/Colors';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { StripeProvider } from '@stripe/stripe-react-native';
+import { auth } from 'firebase/auth';
+import { onAuthStateChanged } from 'firebase/auth';
+import { getLocalStorage } from '../../service/Storage';
 
 export default function TabLayout() {
+
+  const router=useRouter();
+  const [authenticated,setAuthenticated]=useState(null);
+    
+  useEffect(()=>{
+      GetUserDetail();
+  },[])
+
+  const GetUserDetail=async()=>{
+      const userInfo=await  getLocalStorage('userDetail');
+      console.log(userInfo)
+
+      if(!userInfo)
+      {
+          router.replace('/login')
+      }
+  }
+
   return (
     <Tabs
       screenOptions={{

@@ -2,8 +2,9 @@ import { Alert, View, Text, ActivityIndicator, TouchableOpacity, TextInput, Styl
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { Colors } from "../../constants/Colors";
-import { auth } from './../../configs/FirebaseConfig';
+import { auth, db } from './../../configs/FirebaseConfig';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth'
+import { setLocalStorage } from '../../service/Storage';
 
 export default function SignUp() {
 
@@ -31,7 +32,7 @@ export default function SignUp() {
 
        await setLocalStorage('userDetail',user);
 
-          router.push('(tabs)')
+          router.push('/login/signIn')
           // ...
         })
         .catch((error) => {
