@@ -11,11 +11,19 @@ import Welcome from './Welcome';
 import Login from './screens/Login';
 import Register from './screens/Register';
 import { EditProfile } from './screens';
-import Payment from './screens/Payment';
-import AddCard from './screens/AddCard';
-import Favourites from './screens/Favourites';
-import Receipts from './screens/Receipts';
-import Wallet from './screens/Wallet';
+import Payment from './screens/Customer/Payment';
+import AddCard from './screens/Customer/AddCard';
+import Favourites from './screens/Customer/Favourites';
+import Receipts from './screens/Customer/Receipts';
+import Wallet from './screens/Customer/Wallet';
+import Vendor_Home from './screens/Vendor/Vendor_Home';
+import BottomTabNav_Vendor from './navigations/BottomTabNav_Vendor';
+import Vendor_Generate_QR from './screens/Vendor/Vendor_Generate_QR';
+import Vendor_Account from './screens/Vendor/Vendor_Account';
+import Vendor_My_Business from './screens/Vendor/Vendor_My_Business';
+import Vendor_Withdraw_Earnings from './screens/Vendor/Vendor_Withdraw_Earnings';
+import Vendor_Bank_Details from './screens/Vendor/Vendor_Bank_Details';
+import SingleBusinessView from './screens/Customer/SingleBusinessView';
 
 // Prevent SplashScreen from auto-hiding until ready
 SplashScreen.preventAutoHideAsync();
@@ -87,6 +95,15 @@ export default function App() {
             <Stack.Screen name="Favourites" component={Favourites} />
             <Stack.Screen name="Receipts" component={Receipts} />
             <Stack.Screen name="Wallet" component={Wallet} />
+            <Stack.Screen name="SingleBusinessView" component={SingleBusinessView} />
+
+            <Stack.Screen name="Vendor_Home" component={Vendor_Home} />
+            <Stack.Screen name="BottomTabNav_Vendor" component={BottomTabNav_Vendor} />
+            <Stack.Screen name="Vendor_Generate_QR" component={Vendor_Generate_QR} />
+            <Stack.Screen name="Vendor_Account" component={Vendor_Account} />
+            <Stack.Screen name="Vendor_My_Business" component={Vendor_My_Business} />
+            <Stack.Screen name="Vendor_Withdraw_Earnings" component={Vendor_Withdraw_Earnings} />
+            <Stack.Screen name="Vendor_Bank_Details" component={Vendor_Bank_Details} />
 
           </>
         )}

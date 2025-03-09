@@ -44,8 +44,8 @@ function Login({ navigation }) {
             />
           </TouchableOpacity>
         </View>
-
-        <TouchableOpacity style={styles.loginButton} onPress={() => navigation.navigate('BottomTabNavigation')}>
+        {/* onPress={() => navigation.navigate('BottomTabNavigation')} */}
+        <TouchableOpacity style={styles.loginButton} onPress={() => navigation.navigate('BottomTabNav_Vendor')}>
           <Text style={styles.loginButtonText}>Login</Text>
         </TouchableOpacity>
 
