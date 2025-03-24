@@ -1,25 +1,61 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { signOut } from 'firebase/auth';
+import { firebase_auth } from '../../firebaseConfig';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function Profile({ navigation }) {
+  const [user, setUser] = useState(null);
+
+  const signOutHandle = async () => {
+    try {
+      await signOut(firebase_auth);
+      await AsyncStorage.removeItem('user');
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const userValue = await AsyncStorage.getItem('user');
+        if (userValue !== null) {
+          const user = JSON.parse(userValue);
+          setUser(user);
+        } else {
+          Alert.alert('No User', 'User data not found, please log in again.');
+        }
+      } catch (error) {
+        console.error('Error retrieving user data:', error);
+        Alert.alert('Error', 'Failed to load user data.');
+      }
+    };
+    fetchUser();
+  }, []);
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Account</Text>
       </View>
-      
+
       <View style={styles.profileSection}>
         <View style={styles.avatarContainer}>
           <Text style={styles.avatarText}>AB</Text>
         </View>
         <View style={styles.userInfo}>
-          <Text style={styles.userName}>Test User</Text>
-          <Text style={styles.userEmail}>user@email.com</Text>
+          <Text style={styles.userName}>{user.displayName}</Text>
+          <Text style={styles.userEmail}>{user.email}</Text>
         </View>
       </View>
-      
+
       <View style={styles.menuSection}>
         <View style={styles.menuRow}>
           <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Favourites')}>
@@ -28,14 +64,14 @@ function Profile({ navigation }) {
             </View>
             <Text style={styles.menuText}>Favourites</Text>
           </TouchableOpacity>
-          
+
           <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Receipts')}>
             <View style={styles.menuIconContainer}>
               <Ionicons name="receipt" size={24} color="black" />
             </View>
             <Text style={styles.menuText}>Receipts</Text>
           </TouchableOpacity>
-          
+
           <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Wallet')}>
             <View style={styles.menuIconContainer}>
               <Ionicons name="wallet" size={24} color="black" />
@@ -44,9 +80,9 @@ function Profile({ navigation }) {
           </TouchableOpacity>
         </View>
       </View>
-      
+
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.signOutButton}>
+        <TouchableOpacity style={styles.signOutButton} onPress={signOutHandle}>
           <Text style={styles.signOutText}>Sign Out</Text>
         </TouchableOpacity>
       </View>

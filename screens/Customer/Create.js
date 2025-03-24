@@ -3,7 +3,12 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, StatusBar } from 'reac
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
+import { useCameraPermissions } from "expo-camera";
+
 function Create({ navigation }) {
+  const [permission, requestPermission] = useCameraPermissions();
+  const isPermissionGranted = Boolean(permission?.granted);
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
@@ -26,8 +31,7 @@ function Create({ navigation }) {
           <Text style={styles.instructionText}>Hold the code inside the frame. It will be scanned automatically</Text>
         </View>
 
-        {/* Continue Button */}
-        <TouchableOpacity style={styles.continueButton}>
+        <TouchableOpacity style={styles.continueButton} onPress={() => navigation.navigate('QRScanner')}>
           <Text style={styles.continueButtonText}>Continue</Text>
         </TouchableOpacity>
       </View>

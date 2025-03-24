@@ -41,23 +41,6 @@ function Vendor_Account({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      {/* Bottom Tab Bar */}
-      {/* <View style={styles.tabBar}>
-        <TouchableOpacity style={styles.tabItem}>
-          <Ionicons name="home-outline" size={24} color="#888" />
-          <Text style={styles.tabText}>Home</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.tabItem}>
-          <Ionicons name="grid-outline" size={24} color="#888" />
-          <Text style={styles.tabText}>My</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={[styles.tabItem, styles.activeTab]}>
-          <Ionicons name="person-outline" size={24} color="#000" />
-          <Text style={[styles.tabText, styles.activeTabText]}>Account</Text>
-        </TouchableOpacity>
-      </View> */}
     </SafeAreaView>
   );
 }

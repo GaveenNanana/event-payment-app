@@ -2,17 +2,38 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { firebase_auth } from '../firebaseConfig';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { Alert } from "react-native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function Login({ navigation }) {
-    const [email, setEmail] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+
+    const loginFormSubmit = async () => {
+      try {
+        const response = await signInWithEmailAndPassword(firebase_auth, email, password)
+        const user = response.user;
+        const userValue = JSON.stringify(user);
+        await AsyncStorage.setItem('user', userValue);
+        navigation.navigate('BottomTabNavigation');
+        
+      } catch (error) {
+        Alert.alert("Invalid Credentials", "Please check your username and password and try again.", [
+          { text: "OK" }
+        ]); 
+        throw error;
+      }
+  
+    };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         <Text style={styles.title}>Log In</Text>
-        
+
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
@@ -33,19 +54,19 @@ function Login({ navigation }) {
             secureTextEntry={!showPassword}
             autoCapitalize="none"
           />
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.eyeIcon}
             onPress={() => setShowPassword(!showPassword)}
           >
-            <Ionicons 
-              name={showPassword ? "eye-outline" : "eye-off-outline"} 
-              size={24} 
+            <Ionicons
+              name={showPassword ? "eye-outline" : "eye-off-outline"}
+              size={24}
               color="#000"
             />
           </TouchableOpacity>
         </View>
-        {/* onPress={() => navigation.navigate('BottomTabNavigation')} */}
-        <TouchableOpacity style={styles.loginButton} onPress={() => navigation.navigate('BottomTabNav_Vendor')}>
+        {/* onPress={() => navigation.navigate('BottomTabNav_Vendor')} */}
+        <TouchableOpacity style={styles.loginButton} onPress={loginFormSubmit}>
           <Text style={styles.loginButtonText}>Login</Text>
         </TouchableOpacity>
 

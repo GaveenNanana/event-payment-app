@@ -1,16 +1,53 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Keyboard } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { Alert } from "react-native";
+import QRCode from 'react-native-qrcode-svg';
 
 function Vendor_Generate_QR({ navigation }) {
   const [amount, setAmount] = useState('');
   const [discount, setDiscount] = useState('');
+  const [isActive, setIsActive] = useState(false);
+  const [total, setTotal] = useState(0);
+
+  const handleAmountChange = (text) => {
+    const sanitizedText = text.replace(/[^0-9.]/g, "");
+    const validText = sanitizedText.split(".").length > 2
+      ? sanitizedText.slice(0, sanitizedText.lastIndexOf("."))
+      : sanitizedText;
+    const amountValue = validText ? parseFloat(validText) : 0;
+    setAmount(validText);
+    setIsActive(amountValue > 0);
+    setTotal(amountValue);
+  };
+
+  const handleDiscount = (text) => {
+    const sanitizedText = text.replace(/[^0-9.]/g, "");
+    const validText = sanitizedText.split(".").length > 2
+      ? sanitizedText.slice(0, sanitizedText.lastIndexOf("."))
+      : sanitizedText;
+    const discountValue = validText ? parseFloat(validText) : 0;
+    if (discountValue < amount) {
+      setDiscount(validText);
+      setTotal(amount - discountValue);
+    } else {
+      Alert.alert("Invalid Discount", "Discount cannot be greater than or equal to the amount.", [
+        { text: "OK", style: "cancel" }
+      ]);
+    }
+  };
 
   // Calculate totals
   const amountValue = parseFloat(amount) || 0;
   const discountValue = parseFloat(discount) || 0;
-  const total = amountValue - discountValue;
+
+  // Handle the navigation and pass the QR code data to the next screen
+  const handleGenerateQRCode = () => {
+    if (isActive) {
+      navigation.navigate('Vendor_ScanToPay', { qrData: total.toString() });
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -21,7 +58,6 @@ function Vendor_Generate_QR({ navigation }) {
         </TouchableOpacity>
       </View>
       <Text style={styles.headerTitle}>Generate QR</Text>
-
 
       {/* Vendor Profile */}
       <View style={styles.vendorProfile}>
@@ -38,8 +74,12 @@ function Vendor_Generate_QR({ navigation }) {
           style={styles.input}
           placeholder="$0.00"
           keyboardType="numeric"
+          returnKeyType="done"
           value={amount}
-          onChangeText={setAmount}
+          onChangeText={handleAmountChange}
+          onSubmitEditing={() => {
+            Keyboard.dismiss();
+          }}
         />
 
         <Text style={styles.inputLabel}>Enter discount (If Applicable)</Text>
@@ -47,15 +87,19 @@ function Vendor_Generate_QR({ navigation }) {
           style={styles.input}
           placeholder="$0.00"
           keyboardType="numeric"
+          returnKeyType="done"
           value={discount}
-          onChangeText={setDiscount}
+          onChangeText={handleDiscount}
+          onSubmitEditing={() => {
+            Keyboard.dismiss();
+          }}
         />
 
         {/* Transaction Summary */}
         <View style={styles.summaryContainer}>
           <Text style={styles.summaryTitle}>Transaction Summary</Text>
 
-          <View style={{ marginTop: 10,backgroundColor: '#FFFFFF1A', padding: 10, borderRadius: 10, }}>
+          <View style={{ marginTop: 10, backgroundColor: '#FFFFFF1A', padding: 10, borderRadius: 10 }}>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Amount</Text>
               <Text style={styles.summaryValue}>$ {amountValue.toFixed(2)}</Text>
@@ -76,9 +120,17 @@ function Vendor_Generate_QR({ navigation }) {
         </View>
 
         {/* Generate QR Button */}
-        <TouchableOpacity style={styles.generateButton}>
+        <TouchableOpacity style={styles.generateButton} onPress={handleGenerateQRCode}>
           <Text style={styles.generateButtonText}>Generate QR Code</Text>
         </TouchableOpacity>
+
+        {/* Generate QR Code */}
+        {/* {isActive && (
+          <QRCode
+            value={total.toString()}
+            size={200}
+          />
+        )} */}
       </View>
     </SafeAreaView>
   );
@@ -87,7 +139,7 @@ function Vendor_Generate_QR({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#00205B', // Dark blue background
+    backgroundColor: '#050C4D', // Dark blue background
   },
   header: {
     flexDirection: 'row',

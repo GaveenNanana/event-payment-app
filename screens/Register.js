@@ -1,15 +1,51 @@
 import React, { useState } from 'react';
+import { Alert } from "react-native";
 import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { firebase_auth } from '../firebaseConfig';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function Register({ navigation }) {
-    const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
     password: ''
   });
+
+  const registerFormSubmit = async () => {
+    try {
+      const response = await createUserWithEmailAndPassword(firebase_auth, formData.email, formData.password)
+      const user = response.user;
+      await updateProfile(user, {
+        displayName: formData.fullName,
+      });
+      const userValue = JSON.stringify(user);
+      await AsyncStorage.setItem('user', userValue);
+      navigation.navigate('BottomTabNavigation');
+
+    } catch (error) {
+      console.log(error)
+      console.log(error.code)
+      if (error.code == 'auth/weak-password') {
+        Alert.alert("Invalid Credentials", "Password is too weak. Please choose a stronger password with more than 6 characters.", [
+          { text: "OK" }
+        ]);
+      } else if (error.code == 'auth/email-already-in-use') {
+        Alert.alert("Invalid Credentials", "Current email is already in use. Please use a different email address.", [
+          { text: "OK" }
+        ]);
+      } else {
+        Alert.alert("Error", "Something went wrong. Please try again later.", [
+          { text: "OK" }
+        ]);
+      }
+      throw error;
+    }
+
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -28,7 +64,7 @@ function Register({ navigation }) {
           placeholder="Full Name"
           placeholderTextColor="#666"
           value={formData.fullName}
-          onChangeText={(text) => setFormData({...formData, fullName: text})}
+          onChangeText={(text) => setFormData({ ...formData, fullName: text })}
         />
 
         <TextInput
@@ -37,7 +73,7 @@ function Register({ navigation }) {
           placeholderTextColor="#666"
           keyboardType="email-address"
           value={formData.email}
-          onChangeText={(text) => setFormData({...formData, email: text})}
+          onChangeText={(text) => setFormData({ ...formData, email: text })}
         />
 
         <View style={styles.passwordContainer}>
@@ -47,23 +83,22 @@ function Register({ navigation }) {
             placeholderTextColor="#666"
             secureTextEntry={!showPassword}
             value={formData.password}
-            onChangeText={(text) => setFormData({...formData, password: text})}
+            onChangeText={(text) => setFormData({ ...formData, password: text })}
           />
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={() => setShowPassword(!showPassword)}
             style={styles.eyeIcon}
           >
-            <Ionicons 
-              name={showPassword ? "eye-off-outline" : "eye-outline"} 
-              size={24} 
+            <Ionicons
+              name={showPassword ? "eye-off-outline" : "eye-outline"}
+              size={24}
               color="#666"
             />
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* Continue Button */}
-      <TouchableOpacity style={styles.continueButton}>
+      <TouchableOpacity style={styles.continueButton} onPress={registerFormSubmit}>
         <Text style={styles.continueButtonText}>Register</Text>
       </TouchableOpacity>
     </SafeAreaView>

@@ -22,7 +22,7 @@ function Welcome({ navigation }) {
             <Text style={styles.buttonText}>Continue</Text>
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.businessLink}>
+          <TouchableOpacity style={styles.businessLink} onPress={() => navigation.navigate('Vendor_Login')}>
             <Text style={styles.businessLinkText}>Business accounts click here</Text>
           </TouchableOpacity>
         

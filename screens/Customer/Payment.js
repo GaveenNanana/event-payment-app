@@ -14,7 +14,7 @@ function Payment({ navigation }) {
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Ionicons name="chevron-back" size={24} color="white" />
+          <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
         
         <TouchableOpacity style={styles.laterButton} onPress={() => navigation.navigate('BottomTabNavigation')}>

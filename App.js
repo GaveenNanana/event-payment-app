@@ -4,13 +4,13 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { StripeProvider } from '@stripe/stripe-react-native';
 
 // Import screens and navigations
 import BottomTabNav from './navigations/BottomTabNav';
 import Welcome from './Welcome';
 import Login from './screens/Login';
 import Register from './screens/Register';
-import { EditProfile } from './screens';
 import Payment from './screens/Customer/Payment';
 import AddCard from './screens/Customer/AddCard';
 import Favourites from './screens/Customer/Favourites';
@@ -24,6 +24,13 @@ import Vendor_My_Business from './screens/Vendor/Vendor_My_Business';
 import Vendor_Withdraw_Earnings from './screens/Vendor/Vendor_Withdraw_Earnings';
 import Vendor_Bank_Details from './screens/Vendor/Vendor_Bank_Details';
 import SingleBusinessView from './screens/Customer/SingleBusinessView';
+import QRScanner from './screens/Customer/QRScanner';
+import ProceedPay from './screens/Customer/ProceedPay';
+import PaymentSuccess from './screens/Customer/PaymentSuccess';
+import Vendor_ScanToPay from './screens/Vendor/Vendor_ScanToPay';
+import Vendor_Login from './screens/Vendor/Vendor_Login';
+import Vendor_Register from './screens/Vendor/Vendor_Register';
+import Vendor_Business_Details from './screens/Vendor/Vendor_Business_Details';
 
 // Prevent SplashScreen from auto-hiding until ready
 SplashScreen.preventAutoHideAsync();
@@ -77,38 +84,36 @@ export default function App() {
   }
 
   return (
-    <NavigationContainer onReady={onLayoutRootView}>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {firstLaunch ? (
-          <>
-            <Stack.Screen name="Welcome" component={Welcome} />
-            <Stack.Screen name="Login" component={Login} />
-          </>
-        ) : (
-          <>
-            <Stack.Screen name="Login" component={Login} />
-            <Stack.Screen name="BottomTabNavigation" component={BottomTabNav} />
-            <Stack.Screen name="Register" component={Register} />
-            <Stack.Screen name="EditProfile" component={EditProfile} />
-            <Stack.Screen name="Payment" component={Payment} />
-            <Stack.Screen name="AddCard" component={AddCard} />
-            <Stack.Screen name="Favourites" component={Favourites} />
-            <Stack.Screen name="Receipts" component={Receipts} />
-            <Stack.Screen name="Wallet" component={Wallet} />
-            <Stack.Screen name="SingleBusinessView" component={SingleBusinessView} />
+    <StripeProvider publishableKey="pk_test_51R44a02YjkLIszipa6adE8eHgF4ewVi83rg2nGzzPytb00LCGXmj5dxlOsxsixhlv5cWQa2Ogr9Re5oBu2P1mhYT00c22SmSz7">
+      <NavigationContainer onReady={onLayoutRootView}>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Welcome" component={Welcome} />
+          <Stack.Screen name="Login" component={Login} />
+          <Stack.Screen name="BottomTabNavigation" component={BottomTabNav} />
+          <Stack.Screen name="Register" component={Register} />
+          <Stack.Screen name="Payment" component={Payment} />
+          <Stack.Screen name="AddCard" component={AddCard} />
+          <Stack.Screen name="Favourites" component={Favourites} />
+          <Stack.Screen name="Receipts" component={Receipts} />
+          <Stack.Screen name="Wallet" component={Wallet} />
+          <Stack.Screen name="SingleBusinessView" component={SingleBusinessView} />
+          <Stack.Screen name="QRScanner" component={QRScanner} />
+          <Stack.Screen name="ProceedPay" component={ProceedPay} />
+          <Stack.Screen name="PaymentSuccess" component={PaymentSuccess} />
 
-            <Stack.Screen name="Vendor_Home" component={Vendor_Home} />
-            <Stack.Screen name="BottomTabNav_Vendor" component={BottomTabNav_Vendor} />
-            <Stack.Screen name="Vendor_Generate_QR" component={Vendor_Generate_QR} />
-            <Stack.Screen name="Vendor_Account" component={Vendor_Account} />
-            <Stack.Screen name="Vendor_My_Business" component={Vendor_My_Business} />
-            <Stack.Screen name="Vendor_Withdraw_Earnings" component={Vendor_Withdraw_Earnings} />
-            <Stack.Screen name="Vendor_Bank_Details" component={Vendor_Bank_Details} />
-
-          </>
-        )}
-        
-      </Stack.Navigator>
-    </NavigationContainer>
+          <Stack.Screen name="Vendor_Login" component={Vendor_Login} />
+          <Stack.Screen name="Vendor_Register" component={Vendor_Register} />
+          <Stack.Screen name="Vendor_Business_Details" component={Vendor_Business_Details} />
+          <Stack.Screen name="Vendor_Home" component={Vendor_Home} />
+          <Stack.Screen name="BottomTabNav_Vendor" component={BottomTabNav_Vendor} />
+          <Stack.Screen name="Vendor_Generate_QR" component={Vendor_Generate_QR} />
+          <Stack.Screen name="Vendor_Account" component={Vendor_Account} />
+          <Stack.Screen name="Vendor_My_Business" component={Vendor_My_Business} />
+          <Stack.Screen name="Vendor_Withdraw_Earnings" component={Vendor_Withdraw_Earnings} />
+          <Stack.Screen name="Vendor_Bank_Details" component={Vendor_Bank_Details} />
+          <Stack.Screen name="Vendor_ScanToPay" component={Vendor_ScanToPay} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </StripeProvider>
   );
 }
