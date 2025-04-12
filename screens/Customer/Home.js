@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, ImageBackground } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native'; // Make sure to import useNavigation hook
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getCollection } from '../../Services/FirebaseService';
 
-
-const CategoryItem = ({ icon, title }) => (
-  <TouchableOpacity style={styles.categoryItem}>
+const CategoryItem = ({ icon, title, navigation }) => (
+  <TouchableOpacity style={styles.categoryItem} onPress={() => navigation.navigate('VendorList', { category_name: title })}>
     <View style={styles.categoryIcon}>
       <Image source={icon} style={styles.iconImage} />
     </View>
@@ -14,16 +15,16 @@ const CategoryItem = ({ icon, title }) => (
   </TouchableOpacity>
 );
 
-const PlaceCard = ({ title, description, rating }) => (
-  <TouchableOpacity style={styles.placeCard}>
+const PlaceCard = ({ title, businessCategory, imageURL, description, rating, navigation }) => (
+  <TouchableOpacity style={styles.placeCard} onPress={() => navigation.navigate('SingleBusinessView', { vendor_name: title })}>
     <Image
-      source={require('../../assets/home_img/banner/home_b1.jpg')}
+      source={{ uri: imageURL }}
       style={styles.placeImage}
     />
     <Text style={styles.placeTitle}>{title}</Text>
     <Text style={styles.placeDescription}>{description}</Text>
     <View style={styles.ratingContainer}>
-      <Text style={styles.ratingText}>Category</Text>
+      <Text style={styles.ratingText}>{businessCategory}</Text>
       <View style={styles.ratingValue}>
         <Text>{rating}</Text>
         <Ionicons name="star" size={16} color="#FFD700" />
@@ -33,19 +34,34 @@ const PlaceCard = ({ title, description, rating }) => (
 );
 
 const Home = () => {
-  const categories = [
-    { icon: require('../../assets/home_img/1.png'), title: 'Italian' },
-    { icon: require('../../assets/home_img/2.png'), title: 'Italian' },
-    { icon: require('../../assets/home_img/3.png'), title: 'Italian' },
-    { icon: require('../../assets/home_img/4.png'), title: 'Italian' },
-    { icon: require('../../assets/home_img/5.png'), title: 'Italian' },
-    { icon: require('../../assets/home_img/6.png'), title: 'Italian' },
-    { icon: require('../../assets/home_img/7.png'), title: 'Italian' },
-    { icon: require('../../assets/home_img/8.png'), title: 'Italian' },
-  ];
+  const [user, setUser] = useState();
+  const [vendors, setvendors] = useState();
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const user = await AsyncStorage.getItem("user");
+      const userObject = JSON.parse(user);
+      setUser(userObject);
+      const vendors = await getCollection("users");
+      const selectedData = vendors.slice(0, 3);
+      setvendors(selectedData);
+    };
+    fetchUser();
+  }, []);
+
 
   const navigation = useNavigation(); // Access navigation
 
+  const categories = [
+    { icon: require('../../assets/home_img/1.png'), title: 'Light Food' },
+    { icon: require('../../assets/home_img/2.png'), title: 'Asian Cuisine' },
+    { icon: require('../../assets/home_img/3.png'), title: 'Burgers' },
+    { icon: require('../../assets/home_img/4.png'), title: 'Hot Dogs' },
+    { icon: require('../../assets/home_img/5.png'), title: 'Ramen' },
+    { icon: require('../../assets/home_img/6.png'), title: 'Desserts' },
+    { icon: require('../../assets/home_img/7.png'), title: 'Japanese Cuisine' },
+    { icon: require('../../assets/home_img/8.png'), title: 'Fast Food' },
+  ];
 
   return (
     <SafeAreaView style={styles.container}>
@@ -53,35 +69,15 @@ const Home = () => {
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.welcomeText}>Welcome,</Text>
-          <Text style={styles.userName}>Gaveen Nanayakkara</Text>
+          {user && <Text style={styles.userName}>{user.displayName}</Text>}
         </View>
 
-        {/* Payment Card */}
-        {/* <TouchableOpacity style={styles.paymentCard}>
-          <View style={styles.paymentContent}>
-            <Text style={styles.paymentText}>Payments easier than ever</Text>
-            <Text style={styles.payNowText}>Pay now →</Text>
-          </View>
-          <View style={styles.qrContainer}>
-            <Ionicons name="qr-code-outline" size={24} color="white" />
-          </View>
-        </TouchableOpacity> */}
-        {/* Payment Card with Background Image */}
-        <TouchableOpacity style={styles.paymentCardContainer}>
+        <TouchableOpacity style={styles.paymentCardContainer} onPress={() => navigation.navigate('Create')}>
           <ImageBackground
             source={require('../../assets/home_img/banner/home_b2.jpg')}
             style={styles.paymentCard}
             imageStyle={styles.paymentCardImage}
           >
-            {/* <View style={styles.paymentOverlay}>
-              <View style={styles.paymentContent}>
-                <Text style={styles.paymentText}>Payments easier than ever</Text>
-                <Text style={styles.payNowText}>Pay now →</Text>
-              </View>
-              <View style={styles.qrContainer}>
-                <Ionicons name="qr-code-outline" size={24} color="white" />
-              </View>
-            </View> */}
           </ImageBackground>
         </TouchableOpacity>
 
@@ -94,6 +90,7 @@ const Home = () => {
                 key={index}
                 icon={category.icon}
                 title={category.title}
+                navigation={navigation}
               />
             ))}
           </View>
@@ -107,21 +104,22 @@ const Home = () => {
             showsHorizontalScrollIndicator={false}
             style={styles.placesContainer}
           >
-            <TouchableOpacity onPress={() => navigation.navigate('SingleBusinessView')}>
-              <PlaceCard
-                title="Heading"
-                description="Consilio difficultates superare potest esse, immo"
-                rating="4.90"
-              />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('SingleBusinessView')}>
 
-              <PlaceCard
-                title="Heading"
-                description="Consilio difficultates superare potest esse, immo"
-                rating="5.00"
-              />
-            </TouchableOpacity>
+            {vendors && vendors.map((vendor, index) => (
+              <TouchableOpacity
+                key={index}>
+                <PlaceCard
+                  key={index}
+                  title={vendor.businessName}
+                  category={vendor.businessCategory}
+                  imageURL={vendor.imageURL}
+                  description={vendor.about}
+                  rating="4.90"
+                  navigation={navigation}
+                />
+              </TouchableOpacity>
+            ))}
+
           </ScrollView>
         </View>
 

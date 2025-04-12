@@ -1,52 +1,50 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, FlatList, Share, Linking, Platform, Alert, TextInput } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, FlatList, Share, Linking, Platform, Alert, TextInput, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getVendorByName, getCollectionByVendor, addDocument } from '../../Services/FirebaseService';
 
-function Vendor_My_Business({ navigation }) {
+function Vendor_My_Business({ route, navigation }) {
+  const { vendor_name } = route.params;
+  const [vendor, setvendor] = useState();
+  const [reviews, setReviews] = useState([]);
   const [reviewText, setReviewText] = useState('');
   const [userRating, setUserRating] = useState(0);
-  
-  // Sample review data
-  const reviews = [
-    {
-      id: '1',
-      name: 'Courtney Henry',
-      rating: 4,
-      time: '2 mins ago',
-      image: 'https://randomuser.me/api/portraits/women/44.jpg',
-      comment: 'Consequat sed risus felis enim in. Id reprehend at sad tempor adipiscing et vulputate duis et eros etiam.'
-    },
-    {
-      id: '2',
-      name: 'Cameron Williamson',
-      rating: 4,
-      time: '2 mins ago',
-      image: 'https://randomuser.me/api/portraits/men/32.jpg',
-      comment: 'Consequat sed risus felis enim in. Id reprehend at sad tempor adipiscing et vulputate duis et eros etiam.'
-    },
-    {
-      id: '3',
-      name: 'Jane Cooper',
-      rating: 3,
-      time: '2 mins ago',
-      image: 'https://randomuser.me/api/portraits/women/22.jpg',
-      comment: 'Ultimes tempor adipsicing sit eu at in amet sad dispict eros est ex.'
-    }
-  ];
+  const [user, setUser] = useState();
+  const [loading, setloading] = useState(false);
 
-  // Function to handle rating selection
+  useEffect(() => {
+    const fetchVedor = async () => {
+      setloading(true);
+      const userValue = await AsyncStorage.getItem('user');
+      if (userValue !== null) {
+        const user = JSON.parse(userValue);
+        setUser(user);
+      } else {
+        Alert.alert('No User', 'User data not found, please log in again.');
+      }
+
+      const vendor = await getVendorByName(vendor_name);
+      setvendor(vendor);
+      const reviews = await getCollectionByVendor("reviews", vendor_name)
+      setReviews(reviews);
+      setloading(false);
+    };
+    fetchVedor();
+  }, []);
+
+
   const handleRatingPress = (rating) => {
     setUserRating(rating);
   };
 
-  // The rest of your functions remain the same
   const shareBusinessInfo = async () => {
     try {
       const result = await Share.share({
-        message: 'Check out this amazing restaurant!',
-        title: 'Business name',
-        url: '#' // If you have a website to share
+        message: vendor.about,
+        title: vendor.businessName,
+        url: vendor.website
       });
 
       if (result.action === Share.sharedAction) {
@@ -64,7 +62,7 @@ function Vendor_My_Business({ navigation }) {
   };
 
   const handleCall = () => {
-    const phoneNumber = '+94712345678';
+    const phoneNumber = vendor.phoneNumber;
 
     let phoneUrl;
     if (Platform.OS === 'android') {
@@ -85,9 +83,9 @@ function Vendor_My_Business({ navigation }) {
   };
 
   const handleLocation = () => {
-    const latitude = '6.9271';
-    const longitude = '79.8612';
-    const label = 'Business name';
+    const latitude = vendor.address;
+    const longitude = vendor.address;
+    const label = vendor.businessName;
 
     const locationUrl = Platform.select({
       ios: `maps:0,0?q=${label}@${latitude},${longitude}`,
@@ -106,7 +104,7 @@ function Vendor_My_Business({ navigation }) {
   };
 
   const handleWebsite = () => {
-    const websiteUrl = 'https://www.loopwebit.com';
+    const websiteUrl = vendor.website;
 
     Linking.canOpenURL(websiteUrl)
       .then(supported => {
@@ -119,24 +117,52 @@ function Vendor_My_Business({ navigation }) {
       .catch(err => console.error('Error opening website:', err));
   };
 
-  const handleSubmitReview = () => {
+  const addFavourite = async () => {
+
+    const favouriteObj = {
+      name: vendor.businessName,
+      details: vendor.about,
+      img: vendor.imageURL,
+      user_id: user.uid,
+    }
+
+    const docRef = await addDocument('Favourites', favouriteObj);
+    if (docRef != null) {
+      Alert.alert('Added to Favourites', `${vendor.businessName} has been added to your favourites.`);
+    }
+  }
+
+  const handleSubmitReview = async () => {
     if (userRating === 0) {
       Alert.alert('Rating Required', 'Please select a rating before submitting your review.');
       return;
     }
-    
+
     if (reviewText.trim() === '') {
       Alert.alert('Review Required', 'Please write a review before submitting.');
       return;
     }
-    
-    // Here you would typically send the review to your backend
-    Alert.alert('Review Submitted', `Thank you for your ${userRating}-star review!`);
-    setReviewText('');
-    setUserRating(0);
+    const currentDate = new Date();
+    const timestamp = currentDate.getTime();
+
+    const reviewObj = {
+      comment: `${reviewText}`,
+      image: `${user.profileImage}`,
+      name: user.displayName,
+      rating: userRating,
+      time: `${timestamp}`,
+      vendor: vendor_name,
+    }
+    const docRef = await addDocument('reviews', reviewObj);
+
+    if (docRef != null) {
+      Alert.alert('Review Submitted', `Thank you for your ${userRating}-star review!`);
+      setReviewText('');
+      setUserRating(0);
+      navigation.navigate('SingleBusinessView', { vendor_name: vendor_name })
+    }
   };
 
-  // Render a review item
   const renderReviewItem = ({ item }) => (
     <View style={styles.reviewItem}>
       <View style={styles.reviewHeader}>
@@ -153,7 +179,11 @@ function Vendor_My_Business({ navigation }) {
                   color="#FFA41C"
                 />
               ))}
-              <Text style={styles.reviewTime}>{item.time}</Text>
+
+              <Text style={styles.reviewTime}>
+                {new Date(Number(item.time)).toDateString()}
+              </Text>
+
             </View>
           </View>
         </View>
@@ -168,19 +198,24 @@ function Vendor_My_Business({ navigation }) {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
+        {loading ? (
+          <ActivityIndicator size="large" style={styles.loading} />
+        ) : (
+          <View></View>
+        )}
         {/* Food images with overlay */}
         <View style={styles.imageContainer}>
-          <Image
-            source={require('../../assets/home_img/Business.png')}
+          {vendor && <Image
+            source={{ uri: vendor.imageURL }}
             style={styles.mainImage}
             resizeMode="cover"
-          />
+          />}
           <View style={styles.imageOverlay}>
             <View style={styles.navBar}>
               <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
                 <Ionicons name="arrow-back" size={24} color="black" />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.heartButton}>
+              <TouchableOpacity style={styles.heartButton} onPress={addFavourite}>
                 <Ionicons name="heart-outline" size={24} color="black" />
               </TouchableOpacity>
             </View>
@@ -189,7 +224,7 @@ function Vendor_My_Business({ navigation }) {
 
         {/* Business name */}
         <View style={styles.businessInfoContainer}>
-          <Text style={styles.businessName}>Business name</Text>
+          {vendor && <Text style={styles.businessName}>{vendor.businessName}</Text>}
         </View>
 
         {/* Action buttons */}
@@ -226,13 +261,13 @@ function Vendor_My_Business({ navigation }) {
         {/* About section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>About</Text>
-          <Text style={styles.sectionText}>About this business here</Text>
+          {vendor && <Text style={styles.sectionText}>{vendor.about}</Text>}
         </View>
 
         {/* Reviews section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Reviews</Text>
-          
+
           {/* Interactive rating stars */}
           <View style={styles.overallRating}>
             {[...Array(5)].map((_, i) => (
@@ -250,24 +285,28 @@ function Vendor_My_Business({ navigation }) {
               </TouchableOpacity>
             ))}
           </View>
-          
+
           {/* Write a review input */}
           <View style={styles.writeReviewContainer}>
             <TextInput
               style={styles.reviewInput}
               placeholder="Write a review"
               value={reviewText}
+              returnKeyType="done"
               onChangeText={setReviewText}
+              onSubmitEditing={() => {
+                Keyboard.dismiss();
+              }}
               multiline
             />
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.submitButton}
               onPress={handleSubmitReview}
             >
               <Text style={styles.submitButtonText}>Submit Review</Text>
             </TouchableOpacity>
           </View>
-          
+
           {/* Reviews list */}
           <FlatList
             data={reviews}
@@ -442,6 +481,9 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     color: '#333',
   },
+  loading: {
+    padding: 10,
+  }
 });
 
 export default Vendor_My_Business;

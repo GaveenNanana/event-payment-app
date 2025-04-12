@@ -1,12 +1,42 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { firebase_auth } from '../../firebaseConfig';
+import { getUserByUserID } from '../../Services/FirebaseService';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { Alert } from "react-native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function Vendor_Login({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setloading] = useState(false);
+
+  const loginFormSubmit = async () => {
+    try {
+      setloading(true);
+      const response = await signInWithEmailAndPassword(firebase_auth, email, password)
+      const user = response.user;
+      const userObj = await getUserByUserID(user.uid);
+
+      if (userObj != null) {
+        const userValue = JSON.stringify(userObj);
+        await AsyncStorage.setItem('user', userValue);
+        setloading(false);
+        navigation.navigate('BottomTabNav_Vendor');
+      } else {
+        throw error;
+      }
+
+    } catch (error) {
+      Alert.alert("Invalid Credentials", "Please check your username and password and try again.", [
+        { text: "OK" }
+      ]);
+      throw error;
+    }
+  };
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -15,15 +45,15 @@ function Vendor_Login({ navigation }) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.topSection}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.backButton}
-          onPress={() => navigation.goBack()}
+          onPress={() => navigation.navigate('Welcome')}
         >
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
-        
+
         <Text style={styles.headerText}>Business Sign In</Text>
-        
+
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
@@ -34,7 +64,7 @@ function Vendor_Login({ navigation }) {
             keyboardType="email-address"
             autoCapitalize="none"
           />
-          
+
           <View style={styles.passwordContainer}>
             <TextInput
               style={styles.passwordInput}
@@ -45,9 +75,9 @@ function Vendor_Login({ navigation }) {
               secureTextEntry={!showPassword}
             />
             <TouchableOpacity onPress={togglePasswordVisibility} style={styles.eyeIcon}>
-              <Ionicons 
-                name={showPassword ? "eye-off" : "eye"} 
-                size={24} 
+              <Ionicons
+                name={showPassword ? "eye-off" : "eye"}
+                size={24}
                 color="#777"
               />
             </TouchableOpacity>
@@ -55,14 +85,20 @@ function Vendor_Login({ navigation }) {
         </View>
       </View>
 
+      {loading ? (
+        <ActivityIndicator size="large" />
+      ) : (
+        <View></View>
+      )}
+
       <View style={styles.bottomSection}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.loginButton}
-          onPress={() => navigation.navigate('BottomTabNav_Vendor')}
+          onPress={loginFormSubmit}
         >
           <Text style={styles.loginButtonText}>Log In</Text>
         </TouchableOpacity>
-        
+
         <View style={styles.signupContainer}>
           <Text style={styles.signupText}>Don't have a business account? </Text>
           <TouchableOpacity onPress={() => navigation.navigate('Vendor_Register')}>

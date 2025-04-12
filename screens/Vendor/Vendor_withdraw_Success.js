@@ -3,23 +3,15 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
-function PaymentSuccess({ route, navigation }) {
-  const { paymentInfo } = route.params; // Get scannedData from route params
+function Vendor_withdraw_Success({ route, navigation }) {
+  const { amount } = route.params;
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Back button */}
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => navigation.goBack()}
-      >
-        <Ionicons name="arrow-back" size={24} color="white" />
-      </TouchableOpacity>
-
       {/* Content */}
       <View style={styles.content}>
         {/* Title */}
-        <Text style={styles.title}>Payment Success</Text>
+        <Text style={styles.title}>Withdrawal Success</Text>
 
         {/* Success Icon */}
         <View style={styles.iconContainer}>
@@ -30,13 +22,13 @@ function PaymentSuccess({ route, navigation }) {
 
         {/* Success Message */}
         <Text style={styles.message}>
-          Your payment for {paymentInfo.vendor} has been successfully done
+          Your payment is processing and should reflected in your bank account soon
         </Text>
 
         {/* Payment Amount */}
         <View style={styles.paymentInfo}>
-          <Text style={styles.paymentLabel}>Total Payment</Text>
-          <Text style={styles.paymentAmount}>${paymentInfo.amount}.00</Text>
+          <Text style={styles.paymentLabel}>Total Withdraw</Text>
+          <Text style={styles.paymentAmount}>${amount}</Text>
         </View>
       </View>
 
@@ -44,15 +36,9 @@ function PaymentSuccess({ route, navigation }) {
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={styles.doneButton}
-          onPress={() => navigation.navigate('BottomTabNavigation')}
+          onPress={() => navigation.navigate('BottomTabNav_Vendor')}
         >
           <Text style={styles.doneButtonText}>Done</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => navigation.navigate('QRScanner')}
-        >
-          <Text style={styles.payAgainText}>Pay again</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -139,4 +125,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PaymentSuccess;
+export default Vendor_withdraw_Success;

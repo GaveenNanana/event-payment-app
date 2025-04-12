@@ -1,9 +1,36 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { signOut } from 'firebase/auth';
+import { firebase_auth } from '../../firebaseConfig';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function Vendor_Account({ navigation }) {
+  const [user, setUser] = useState();
+
+  const signOutHandle = async () => {
+    try {
+      await signOut(firebase_auth);
+      await AsyncStorage.removeItem('user');
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Vendor_Login' }],
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const user = await AsyncStorage.getItem("user");
+      const userObject = JSON.parse(user);
+      setUser(userObject);
+    };
+    fetchUser();
+  }, []);
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -14,29 +41,42 @@ function Vendor_Account({ navigation }) {
       {/* Profile Section */}
       <View style={styles.profileSection}>
         <View style={styles.avatarContainer}>
-          <Text style={styles.avatarText}>AB</Text>
-        </View>
-        <Text style={styles.businessName}>Business Name</Text>
+          {user && <Image source={{ uri: user.imageURL }} style={styles.mainImage} resizeMode="cover" />}</View>
+        {user && <Text style={styles.businessName}>{user.businessName}</Text>}
       </View>
 
       {/* Menu Items */}
       <View style={styles.menuContainer}>
-        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Vendor_My_Business')}>
-          <Text style={styles.menuItemText}><Ionicons name="bag-sharp" size={20} color="#000"/>  My Business </Text>
+        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Vendor_UpdateBusiness')}>
+          <Text style={styles.menuItemText}><Ionicons name="bag-sharp" size={20} color="#000" />  Update Business Details</Text>
           <Ionicons name="chevron-forward" size={24} color="#888" />
         </TouchableOpacity>
-        
+
         <View style={styles.divider} />
-        
+
+        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Vendor_My_Business')}>
+          <Text style={styles.menuItemText}><Ionicons name="bag-sharp" size={20} color="#000" />  My Business </Text>
+          <Ionicons name="chevron-forward" size={24} color="#888" />
+        </TouchableOpacity>
+
+        <View style={styles.divider} />
+
+        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Vendor_Transactions')}>
+          <Text style={styles.menuItemText}><Ionicons name="bag-sharp" size={20} color="#000" />  My Transactions </Text>
+          <Ionicons name="chevron-forward" size={24} color="#888" />
+        </TouchableOpacity>
+
+        <View style={styles.divider} />
+
         <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Vendor_Withdraw_Earnings')}>
-          <Text style={styles.menuItemText}><Ionicons name="bag-sharp" size={20} color="#000"/>  Withdraw Earnings</Text>
+          <Text style={styles.menuItemText}><Ionicons name="bag-sharp" size={20} color="#000" />  Withdraw Earnings</Text>
           <Ionicons name="chevron-forward" size={24} color="#888" />
         </TouchableOpacity>
       </View>
 
       {/* Sign Out Button */}
       <View style={styles.signOutContainer}>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={signOutHandle}>
           <Text style={styles.signOutText}>Sign Out</Text>
         </TouchableOpacity>
       </View>
@@ -137,6 +177,10 @@ const styles = StyleSheet.create({
   },
   activeTabText: {
     color: '#000',
+  },
+  mainImage: {
+    width: '100%',
+    height: '100%',
   },
 });
 

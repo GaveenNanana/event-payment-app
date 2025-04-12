@@ -12,7 +12,7 @@ function Create({ navigation }) {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
-
+ 
       {/* Header */}
       <Text style={styles.headerTitle}>Scan to Pay</Text>
 

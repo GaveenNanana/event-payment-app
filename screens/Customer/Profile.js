@@ -7,7 +7,7 @@ import { firebase_auth } from '../../firebaseConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function Profile({ navigation }) {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState();
 
   const signOutHandle = async () => {
     try {
@@ -48,16 +48,24 @@ function Profile({ navigation }) {
 
       <View style={styles.profileSection}>
         <View style={styles.avatarContainer}>
-          <Text style={styles.avatarText}>AB</Text>
+          {user && <Image source={{ uri: user.profileImage }} style={styles.mainImage} resizeMode="cover" />}
         </View>
         <View style={styles.userInfo}>
-          <Text style={styles.userName}>{user.displayName}</Text>
-          <Text style={styles.userEmail}>{user.email}</Text>
+          {user && <Text style={styles.userName}>{user.displayName}</Text>}
+          {user && <Text style={styles.userEmail}>{user.email}</Text>}
         </View>
       </View>
 
       <View style={styles.menuSection}>
         <View style={styles.menuRow}>
+
+          <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('EditProfile')}>
+            <View style={styles.menuIconContainer}>
+              <Ionicons name="person" size={24} color="black" />
+            </View>
+            <Text style={styles.menuText}>Edit Profile</Text>
+          </TouchableOpacity>
+
           <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Favourites')}>
             <View style={styles.menuIconContainer}>
               <Ionicons name="briefcase" size={24} color="black" />
@@ -72,11 +80,8 @@ function Profile({ navigation }) {
             <Text style={styles.menuText}>Receipts</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Wallet')}>
-            <View style={styles.menuIconContainer}>
-              <Ionicons name="wallet" size={24} color="black" />
-            </View>
-            <Text style={styles.menuText}>Wallet</Text>
+          <TouchableOpacity style={styles.menuItem} >
+
           </TouchableOpacity>
         </View>
       </View>
@@ -175,6 +180,10 @@ const styles = StyleSheet.create({
     color: 'red',
     fontSize: 16,
     fontWeight: '500',
+  },
+  mainImage: {
+    width: '70%',
+    height: '70%',
   },
 });
 

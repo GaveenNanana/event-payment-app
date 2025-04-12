@@ -1,19 +1,33 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { getCollectionByUserID } from '../../Services/FirebaseService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function Receipts({ navigation }) {
-  const receiptsData = [
-    { id: '1', vendor: 'Vendor name', amount: '$ 24.00', date: 'Jan 25' },
-    { id: '2', vendor: 'Vendor name', amount: '$ 24.00', date: 'Jan 25' },
-    { id: '3', vendor: 'Vendor name', amount: '$ 24.00', date: 'Jan 25' },
-    { id: '4', vendor: 'Vendor name', amount: '$ 24.00', date: 'Jan 25' },
-    { id: '5', vendor: 'Vendor name', amount: '$ 24.00', date: 'Jan 25' },
-    { id: '6', vendor: 'Vendor name', amount: '$ 24.00', date: 'Jan 25' },
-    { id: '7', vendor: 'Vendor name', amount: '$ 24.00', date: 'Jan 25' },
-    { id: '8', vendor: 'Vendor name', amount: '$ 24.00', date: 'Jan 25' },
-  ];
+  const [receiptsData, setReceiptsData] = useState();
+  const [loading, setloading] = useState(false);
+
+  useEffect(() => {
+    const fetchReceipts = async () => {
+      try {
+        setloading(true);
+        const userValue = await AsyncStorage.getItem('user');
+        const user = JSON.parse(userValue);
+
+        const records = await getCollectionByUserID('Payments', user.uid);
+        setReceiptsData(records);
+        setloading(false);
+
+      } catch (error) {
+        console.error('Error retrieving Receipts data:', error);
+        Alert.alert('Error', 'Failed to load Receipts data.');
+      }
+    };
+
+    fetchReceipts();
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -24,11 +38,17 @@ function Receipts({ navigation }) {
       </View>
       <Text style={styles.headerTitle}>Receipts</Text>
 
-      <ScrollView 
+      {loading ? (
+        <ActivityIndicator size="large" style={styles.loading} />
+      ) : (
+        <View></View>
+      )}
+
+      <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {receiptsData.map((item) => (
+        {receiptsData && (receiptsData.map((item) => (
           <View key={item.id} style={styles.receiptItem}>
             <View style={styles.leftContainer}>
               <View style={styles.avatarContainer}>
@@ -37,8 +57,18 @@ function Receipts({ navigation }) {
               <View style={styles.receiptDetails}>
                 <Text style={styles.vendorName}>{item.vendor}</Text>
                 <View style={styles.amountDateContainer}>
-                  <Text style={styles.amount}>{item.amount}</Text>
-                  <Text style={styles.date}>{item.date}</Text>
+                  <Text style={styles.amount}>${item.amount}</Text>
+                  <Text style={styles.date}>
+                    {new Date(item.date).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: false,
+                    })}
+                  </Text>
+
                 </View>
               </View>
             </View>
@@ -46,7 +76,7 @@ function Receipts({ navigation }) {
               <Text style={styles.viewButtonText}>View</Text>
             </TouchableOpacity>
           </View>
-        ))}
+        )))}
       </ScrollView>
     </SafeAreaView>
   );
@@ -133,6 +163,9 @@ const styles = StyleSheet.create({
     color: '#444',
     fontSize: 13,
   },
+  loading: {
+    padding: 10,
+  }
 });
 
 export default Receipts;

@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, Alert } from 'react-na
 import { Ionicons } from '@expo/vector-icons';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { CardField, CardForm, useStripe, StripeProvider } from '@stripe/stripe-react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { addDocument } from '../../Services/FirebaseService';
 
 function ProceedPay({ route, navigation }) {
   const { scannedData } = route.params;
@@ -12,30 +14,11 @@ function ProceedPay({ route, navigation }) {
   const [cardDetails, setCardDetails] = useState(null);
   const [showCardForm, setShowCardForm] = useState(false);
 
-  // Get the current date
   const currentDate = new Date();
   const formattedDate = `${currentDate.toLocaleString('default', { weekday: 'short' })}, ${currentDate.getDate()} ${currentDate.toLocaleString('default', { month: 'short' })} ${currentDate.getFullYear()}`;
 
-  const openPaymentSheet = async () => {
-    setLoading(true);
-
-    const { error } = await presentPaymentSheet();
-
-    if (error) {
-      Alert.alert('Error', `Payment failed: ${error.message}`);
-    } else {
-      Alert.alert('Success', 'Your payment was successful!');
-    }
-    setLoading(false);
-  };
-
   const handlePayment = async () => {
     try {
-      // if (!cardDetails?.complete) {
-      //   Alert.alert("Error", "Please complete the card details first");
-      //   return;
-      // }
-
       const hasBiometric = await LocalAuthentication.hasHardwareAsync();
 
       if (!hasBiometric) {
@@ -63,7 +46,7 @@ function ProceedPay({ route, navigation }) {
             'Authorization': 'Bearer sk_test_51R44a02YjkLIszipdReooW1UdanT6aropSrG6rt9Eqi42KXC7nSW6fzqY9zGdTvdbhQ57OwfXlDqNJaCO9gqcM0B006gaotS4f',
           },
           body: new URLSearchParams({
-            amount: parseInt(scannedData) * 100,
+            amount: parseInt(scannedData.amount) * 100,
             currency: 'usd',
           }).toString(),
         });
@@ -78,8 +61,22 @@ function ProceedPay({ route, navigation }) {
           console.error(error);
           Alert.alert('Payment failed', error.message);
         } else if (paymentIntent) {
-          console.log('Payment successful', paymentIntent);
-          navigation.navigate('PaymentSuccess', { scannedData });
+          const amount = scannedData.amount;
+          const user = await AsyncStorage.getItem("user");
+          const userObject = JSON.parse(user);
+          const currentDate = new Date();
+          const timestamp = currentDate.getTime();
+
+          const paymentInfo = {
+            user_id: userObject.uid,
+            vendor: scannedData.vendor,
+            amount: amount,
+            discount_amount: scannedData.discount_amount,
+            date: timestamp
+          };
+
+          const QRRef = await addDocument("Payments", paymentInfo);
+          navigation.navigate('PaymentSuccess', { paymentInfo });
         }
       } else {
         Alert.alert("Payment", "Authentication failed. Please try again.");
@@ -110,24 +107,24 @@ function ProceedPay({ route, navigation }) {
           {/* Starbucks logo */}
           <View style={styles.logoContainer}>
             <Image
-              source={require('../../assets/home_img/starbucks-logo.jpg')}
+              source={{ uri: scannedData.vendor_image }}
               style={styles.logo}
             />
           </View>
 
           {/* Vendor section */}
-          <Text style={styles.vendorLabel}>VENDOR</Text>
+          <Text style={styles.vendorLabel}>{scannedData.vendor}</Text>
 
           {/* Show dynamic payment date */}
           <Text style={styles.paymentDate}>Payment on {formattedDate}</Text>
 
           {/* Amount */}
-          <Text style={styles.amountText}>${scannedData}.00</Text>
+          <Text style={styles.amountText}>${scannedData.amount}.00</Text>
 
           {/* Discount badge */}
           <View style={styles.discountBadge}>
             <View style={styles.discountDot} />
-            <Text style={styles.discountText}>Discount of $2 has been applied</Text>
+            <Text style={styles.discountText}>Discount of ${scannedData.discount_amount} has been applied</Text>
           </View>
 
           {/* Payment method section */}
@@ -137,11 +134,14 @@ function ProceedPay({ route, navigation }) {
             {/* Visa card option */}
             <TouchableOpacity style={styles.paymentCard} onPress={toggleCardForm}>
               <View style={styles.cardLeft}>
-                <View style={styles.visaBadge}>
-                  <Text style={styles.visaText}>VISA</Text>
-                </View>
+                {/* <View style={styles.visaBadge}> */}
+                <Ionicons name="card"
+                  size={26}
+                  color={'#1A1A4D'}
+                />
+                {/* </View> */}
                 <Text style={styles.cardNumber}>
-                  {cardDetails?.complete ? "Card details complete" : "Enter card details"}
+                  {cardDetails?.complete ? "  Card details complete" : "  Enter card details"}
                 </Text>
               </View>
               <Ionicons name={showCardForm ? "chevron-down" : "chevron-forward"} size={24} color="#333" />
@@ -152,7 +152,6 @@ function ProceedPay({ route, navigation }) {
               <CardForm
                 style={styles.cardForm}
                 onFormComplete={(details) => {
-                  console.log('Card details:', details);
                   setCardDetails(details);
                 }}
               />
@@ -266,11 +265,12 @@ const styles = StyleSheet.create({
     height: '35%',
   },
   expandedContainer: {
-    height: '80%',
+    height: '120%',
   },
   paymentMethodTitle: {
     fontSize: 16,
     fontWeight: '600',
+    marginTop: 16,
     marginBottom: 16,
     color: '#000',
   },
@@ -305,16 +305,19 @@ const styles = StyleSheet.create({
   },
   cardForm: {
     width: '100%',
-    height: 180,
+    height: 280,
     marginTop: 10,
   },
   payButton: {
+    position: 'absolute',
+    bottom: 30,
+    left: 20,
+    right: 20,
     backgroundColor: '#000033',
     borderRadius: 8,
     height: 48,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 24,
   },
   payButtonDisabled: {
     backgroundColor: '#666666',

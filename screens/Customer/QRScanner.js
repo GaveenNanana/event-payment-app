@@ -1,11 +1,13 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useState } from 'react';
 import { Button, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
+import { getDocument } from '../../Services/FirebaseService';
 
 function QRScanner({ navigation }) {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [scannedData, setScannedData] = useState('');
+  const [loading, setloading] = useState(false);
 
   if (!permission) {
     return (
@@ -25,11 +27,13 @@ function QRScanner({ navigation }) {
     );
   }
 
-  const handleBarcodeScanned = ({ type, data }) => {
+  const handleBarcodeScanned = async ({ type, data }) => {
+    setloading(true);
     setScanned(true);
     setScannedData(data);
-    console.log(`Scanned QR code: Type = ${type}, Data = ${data}`);
-    navigation.navigate('ProceedPay', { scannedData: data });
+    const QRData = await getDocument('QRCodes', data);
+    setloading(false);
+    navigation.navigate('ProceedPay', { scannedData: QRData });
   };
 
   return (
@@ -49,7 +53,11 @@ function QRScanner({ navigation }) {
 
       {scanned && (
         <View style={styles.resultContainer}>
-          <Text style={styles.scannedText}>Payment Amount: {scannedData}</Text>
+          {loading ? (
+            <ActivityIndicator size="large" />
+          ) : (
+            <View></View>
+          )}
           <Button
             title={"Tap to Scan Again"}
             onPress={() => {

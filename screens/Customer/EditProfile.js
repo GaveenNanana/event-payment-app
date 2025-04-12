@@ -1,4 +1,5 @@
 import {
+  StyleSheet,
   View,
   Text,
   TouchableOpacity,
@@ -6,38 +7,76 @@ import {
   Image,
   TextInput,
   Modal,
+  ActivityIndicator
 } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
 import { COLORS, FONTS } from "../../constants";
 import { MaterialIcons } from "@expo/vector-icons";
 import { imagesDataURL } from "../../constants/data";
 import DatePicker, { getFormatedDate } from "react-native-modern-datepicker";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { addImage, updateDocument } from '../../Services/FirebaseService';
 
 const EditProfile = ({ navigation }) => {
-  const [selectedImage, setSelectedImage] = useState(imagesDataURL[0]);
+  const [selectedImage, setSelectedImage] = useState();
+  const [selectedImageMeta, setSelectedImageMeta] = useState();
   const [name, setName] = useState("Melissa Peters");
   const [email, setEmail] = useState("metperters@gmail.com");
-  const [password, setPassword] = useState("randompassword");
-  const [country, setCountry] = useState("Nigeria");
-
   const [openStartDatePicker, setOpenStartDatePicker] = useState(false);
-  const today = new Date();
-  const startDate = getFormatedDate(
-    today.setDate(today.getDate() + 1),
-    "YYYY/MM/DD"
-  );
-  const [selectedStartDate, setSelectedStartDate] = useState("01/01/1990");
-  const [startedDate, setStartedDate] = useState("12/12/2023");
+  const [user, setUser] = useState();
+  const [loading, setloading] = useState(false);
 
-  const handleChangeStartDate = (propDate) => {
-    setStartedDate(propDate);
-  };
 
-  const handleOnPressStartDate = () => {
-    setOpenStartDatePicker(!openStartDatePicker);
-  };
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const userValue = await AsyncStorage.getItem('user');
+        if (userValue !== null) {
+          const user = JSON.parse(userValue);
+          setUser(user);
+          setSelectedImage(user.profileImage);
+          setName(user.displayName);
+          setEmail(user.email);
+        } else {
+          Alert.alert('No User', 'User data not found, please log in again.');
+        }
+      } catch (error) {
+        console.error('Error retrieving user data:', error);
+        Alert.alert('Error', 'Failed to load user data.');
+      }
+    };
+    fetchUser();
+  }, []);
+
+  const updateProfile = async () => {
+    setloading(true);
+    try {
+      const imageMeta = await addImage(selectedImageMeta, "customer");
+      if (imageMeta.success) {
+        console.log("Image uploaded to Firebase:", imageMeta.url);
+        const userObj = {
+          profileImage: `${imageMeta.url}`,
+        };
+        const docRef = await updateDocument("Customers", user.id, userObj);
+
+        const userValue = JSON.stringify({
+          ...user,
+          profileImage: userObj.profileImage,
+        });
+        await AsyncStorage.setItem('user', userValue);
+        setloading(false);
+        navigation.navigate('BottomTabNavigation');
+      } else {
+        alert("Image upload failed: " + imageMeta.error);
+      }
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+
+  }
 
   const handleImageSelection = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -47,71 +86,11 @@ const EditProfile = ({ navigation }) => {
       quality: 1,
     });
 
-    console.log(result);
-
     if (!result.canceled) {
       setSelectedImage(result.assets[0].uri);
+      setSelectedImageMeta(result.assets[0]);
     }
   };
-
-  function renderDatePicker() {
-    return (
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={openStartDatePicker}
-      >
-        <View
-          style={{
-            flex: 1,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <View
-            style={{
-              margin: 20,
-              backgroundColor: COLORS.primary,
-              alignItems: "center",
-              justifyContent: "center",
-              borderRadius: 20,
-              padding: 35,
-              width: "90%",
-              shadowColor: "#000",
-              shadowOffset: {
-                width: 0,
-                height: 2,
-              },
-              shadowOpacity: 0.25,
-              shadowRadius: 4,
-              elevation: 5,
-            }}
-          >
-            <DatePicker
-              mode="calendar"
-              minimumDate={startDate}
-              selected={startedDate}
-              onDateChanged={handleChangeStartDate}
-              onSelectedChange={(date) => setSelectedStartDate(date)}
-              options={{
-                backgroundColor: COLORS.primary,
-                textHeaderColor: "#469ab6",
-                textDefaultColor: COLORS.white,
-                selectedTextColor: COLORS.white,
-                mainColor: "#469ab6",
-                textSecondaryColor: COLORS.white,
-                borderColor: "rgba(122,146,165,0.1)",
-              }}
-            />
-
-            <TouchableOpacity onPress={handleOnPressStartDate}>
-              <Text style={{ ...FONTS.body3, color: COLORS.white }}>Close</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-    );
-  }
 
   return (
     <SafeAreaView
@@ -199,12 +178,13 @@ const EditProfile = ({ navigation }) => {
                 marginVertical: 6,
                 justifyContent: "center",
                 paddingLeft: 8,
+                backgroundColor: '#C2C1C1FF'
               }}
             >
               <TextInput
                 value={name}
                 onChangeText={(value) => setName(value)}
-                editable={true}
+                editable={false}
               />
             </View>
           </View>
@@ -226,12 +206,13 @@ const EditProfile = ({ navigation }) => {
                 marginVertical: 6,
                 justifyContent: "center",
                 paddingLeft: 8,
+                backgroundColor: '#C2C1C1FF'
               }}
             >
               <TextInput
                 value={email}
                 onChangeText={(value) => setEmail(value)}
-                editable={true}
+                editable={false}
               />
             </View>
           </View>
@@ -242,77 +223,6 @@ const EditProfile = ({ navigation }) => {
               marginBottom: 6,
             }}
           >
-            <Text style={{ ...FONTS.h4 }}>Password</Text>
-            <View
-              style={{
-                height: 44,
-                width: "100%",
-                borderColor: COLORS.secondaryGray,
-                borderWidth: 1,
-                borderRadius: 4,
-                marginVertical: 6,
-                justifyContent: "center",
-                paddingLeft: 8,
-              }}
-            >
-              <TextInput
-                value={password}
-                onChangeText={(value) => setPassword(value)}
-                editable={true}
-                secureTextEntry
-              />
-            </View>
-          </View>
-
-          <View
-            style={{
-              flexDirection: "column",
-              marginBottom: 6,
-            }}
-          >
-            <Text style={{ ...FONTS.h4 }}>Date or Birth</Text>
-            <TouchableOpacity
-              onPress={handleOnPressStartDate}
-              style={{
-                height: 44,
-                width: "100%",
-                borderColor: COLORS.secondaryGray,
-                borderWidth: 1,
-                borderRadius: 4,
-                marginVertical: 6,
-                justifyContent: "center",
-                paddingLeft: 8,
-              }}
-            >
-              <Text>{selectedStartDate}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <View
-          style={{
-            flexDirection: "column",
-            marginBottom: 6,
-          }}
-        >
-          <Text style={{ ...FONTS.h4 }}>Country</Text>
-          <View
-            style={{
-              height: 44,
-              width: "100%",
-              borderColor: COLORS.secondaryGray,
-              borderWidth: 1,
-              borderRadius: 4,
-              marginVertical: 6,
-              justifyContent: "center",
-              paddingLeft: 8,
-            }}
-          >
-            <TextInput
-              value={country}
-              onChangeText={(value) => setCountry(value)}
-              editable={true}
-            />
           </View>
         </View>
 
@@ -324,6 +234,7 @@ const EditProfile = ({ navigation }) => {
             alignItems: "center",
             justifyContent: "center",
           }}
+          onPress={updateProfile}
         >
           <Text
             style={{
@@ -335,10 +246,20 @@ const EditProfile = ({ navigation }) => {
           </Text>
         </TouchableOpacity>
 
-        {renderDatePicker()}
+        {loading ? (
+          <ActivityIndicator size="large" style={styles.loading} />
+        ) : (
+          <View></View>
+        )}
+
       </ScrollView>
     </SafeAreaView>
   );
 };
 
+const styles = StyleSheet.create({
+  loading: {
+    padding: 10,
+  }
+});
 export default EditProfile;

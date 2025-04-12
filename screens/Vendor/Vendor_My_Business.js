@@ -1,56 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, FlatList, Share, Linking, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getUserByUserID, getCollectionByVendor } from '../../Services/FirebaseService';
 
 function Vendor_My_Business({ navigation }) {
-  // Sample review data
-  const reviews = [
-    {
-      id: '1',
-      name: 'Courtney Henry',
-      rating: 4,
-      time: '2 mins ago',
-      image: 'https://randomuser.me/api/portraits/women/44.jpg',
-      comment: 'Consequat sed risus felis enim in. Id reprehend at sad tempor adipiscing et vulputate duis et eros etiam.'
-    },
-    {
-      id: '2',
-      name: 'Cameron Williamson',
-      rating: 4,
-      time: '2 mins ago',
-      image: 'https://randomuser.me/api/portraits/men/32.jpg',
-      comment: 'Consequat sed risus felis enim in. Id reprehend at sad tempor adipiscing et vulputate duis et eros etiam.'
-    },
-    {
-      id: '3',
-      name: 'Jane Cooper',
-      rating: 3,
-      time: '2 mins ago',
-      image: 'https://randomuser.me/api/portraits/women/22.jpg',
-      comment: 'Ultimes tempor adipsicing sit eu at in amet sad dispict eros est ex.'
-    }
-  ];
+  const [user, setUser] = useState();
+  const [reviews, setReviews] = useState([]);
 
-  // Then, add this function inside your Vendor_My_Business component
+  useEffect(() => {
+    const fetchUser = async () => {
+      const user = await AsyncStorage.getItem("user");
+      const userObject = JSON.parse(user);
+      const userObj = await getUserByUserID(userObject.userID);
+      setUser(userObj);
+      const reviews = await getCollectionByVendor("reviews", userObj.businessName)
+      setReviews(reviews);
+
+    };
+    fetchUser();
+  }, []);
+
   const shareBusinessInfo = async () => {
     try {
       const result = await Share.share({
-        message: 'Check out this amazing restaurant!',
-        title: 'Business name',
-        url: '#' // If you have a website to share
+        message: user.about,
+        title: user.businessName,
+        url: user.website
       });
 
       if (result.action === Share.sharedAction) {
         if (result.activityType) {
-          // shared with activity type of result.activityType
           console.log('Shared with activity type:', result.activityType);
         } else {
-          // shared
           console.log('Shared successfully');
         }
       } else if (result.action === Share.dismissedAction) {
-        // dismissed
         console.log('Share dismissed');
       }
     } catch (error) {
@@ -60,7 +46,7 @@ function Vendor_My_Business({ navigation }) {
 
   // Function to handle phone call
   const handleCall = () => {
-    const phoneNumber = '+94712345678'; // Replace 
+    const phoneNumber = user.phoneNumber;
 
     let phoneUrl;
     if (Platform.OS === 'android') {
@@ -82,9 +68,9 @@ function Vendor_My_Business({ navigation }) {
 
   // Function to open location in maps
   const handleLocation = () => {
-    const latitude = '6.9271'; // Colombo latitude
-    const longitude = '79.8612'; // Colombo longitude
-    const label = 'Business name'; // Replace
+    const latitude = user.address;
+    const longitude = user.address;
+    const label = user.businessName;
 
     const locationUrl = Platform.select({
       ios: `maps:0,0?q=${label}@${latitude},${longitude}`,
@@ -104,7 +90,7 @@ function Vendor_My_Business({ navigation }) {
 
   // Function to open website
   const handleWebsite = () => {
-    const websiteUrl = 'https://www.loopwebit.com';// Replace
+    const websiteUrl = user.website;
 
     Linking.canOpenURL(websiteUrl)
       .then(supported => {
@@ -134,13 +120,10 @@ function Vendor_My_Business({ navigation }) {
                   color="#FFA41C"
                 />
               ))}
-              <Text style={styles.reviewTime}>{item.time}</Text>
+              <Text style={styles.reviewTime}>{new Date(Number(item.time)).toDateString()}</Text>
             </View>
           </View>
         </View>
-        <TouchableOpacity>
-          <Ionicons name="ellipsis-vertical" size={20} color="#000" />
-        </TouchableOpacity>
       </View>
       <Text style={styles.reviewText}>{item.comment}</Text>
     </View>
@@ -148,15 +131,15 @@ function Vendor_My_Business({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView>
+      {user && <ScrollView>
 
         {/* Food images with overlay */}
         <View style={styles.imageContainer}>
-          <Image
-            source={require('../../assets/home_img/Business.png')}
+          {user && <Image
+            source={{ uri: user.imageURL }}
             style={styles.mainImage}
             resizeMode="cover"
-          />
+          />}
           <View style={styles.imageOverlay}>
             <View style={styles.statusBar}>
             </View>
@@ -168,7 +151,7 @@ function Vendor_My_Business({ navigation }) {
 
         {/* Business name */}
         <View style={styles.businessInfoContainer}>
-          <Text style={styles.businessName}>Business name</Text>
+          {user && <Text style={styles.businessName}>{user.businessName}</Text>}
         </View>
 
         {/* Action buttons */}
@@ -205,7 +188,7 @@ function Vendor_My_Business({ navigation }) {
         {/* About section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>About</Text>
-          <Text style={styles.sectionText}>About this business here</Text>
+          {user && <Text style={styles.sectionText}>{user.about}</Text>}
         </View>
 
         {/* Reviews section */}
@@ -218,7 +201,7 @@ function Vendor_My_Business({ navigation }) {
             scrollEnabled={false}
           />
         </View>
-      </ScrollView>
+      </ScrollView>}
     </SafeAreaView>
   );
 }

@@ -11,6 +11,7 @@ import BottomTabNav from './navigations/BottomTabNav';
 import Welcome from './Welcome';
 import Login from './screens/Login';
 import Register from './screens/Register';
+
 import Payment from './screens/Customer/Payment';
 import AddCard from './screens/Customer/AddCard';
 import Favourites from './screens/Customer/Favourites';
@@ -31,6 +32,12 @@ import Vendor_ScanToPay from './screens/Vendor/Vendor_ScanToPay';
 import Vendor_Login from './screens/Vendor/Vendor_Login';
 import Vendor_Register from './screens/Vendor/Vendor_Register';
 import Vendor_Business_Details from './screens/Vendor/Vendor_Business_Details';
+import Vendor_Update_business from './screens/Vendor/Vendor_Update_business';
+import Vendor_Transactions from './screens/Vendor/Vendor_Transactions';
+import Vendor_Update_Bank_Details from './screens/Vendor/Vendor_Update_Bank_Details';
+import Vendor_withdraw_Success from './screens/Vendor/Vendor_withdraw_Success';
+import VendorList from './screens/Customer/VendorList';
+import EditProfile from './screens/Customer/EditProfile';
 
 // Prevent SplashScreen from auto-hiding until ready
 SplashScreen.preventAutoHideAsync();
@@ -100,6 +107,8 @@ export default function App() {
           <Stack.Screen name="QRScanner" component={QRScanner} />
           <Stack.Screen name="ProceedPay" component={ProceedPay} />
           <Stack.Screen name="PaymentSuccess" component={PaymentSuccess} />
+          <Stack.Screen name="VendorList" component={VendorList} />
+          <Stack.Screen name="EditProfile" component={EditProfile} />
 
           <Stack.Screen name="Vendor_Login" component={Vendor_Login} />
           <Stack.Screen name="Vendor_Register" component={Vendor_Register} />
@@ -112,6 +121,11 @@ export default function App() {
           <Stack.Screen name="Vendor_Withdraw_Earnings" component={Vendor_Withdraw_Earnings} />
           <Stack.Screen name="Vendor_Bank_Details" component={Vendor_Bank_Details} />
           <Stack.Screen name="Vendor_ScanToPay" component={Vendor_ScanToPay} />
+          <Stack.Screen name="Vendor_UpdateBusiness" component={Vendor_Update_business} />
+          <Stack.Screen name="Vendor_Transactions" component={Vendor_Transactions} />
+          <Stack.Screen name="Vendor_Update_Bank_Details" component={Vendor_Update_Bank_Details} />
+          <Stack.Screen name="Vendor_withdraw_Success" component={Vendor_withdraw_Success} />
+
         </Stack.Navigator>
       </NavigationContainer>
     </StripeProvider>

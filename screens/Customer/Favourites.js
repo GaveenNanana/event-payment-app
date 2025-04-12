@@ -1,42 +1,53 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { getCollectionByUserID } from '../../Services/FirebaseService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function Favourites({ navigation }) {
-  // Sample data for the favorites list
-  const favourites = [
-    { id: '1', name: 'Vendor name', details: 'Cornello.difficultatesdwedwed...', price: '5.00' },
-    { id: '2', name: 'Vendor name', details: 'Cornello.difficultatesdwedwed...', price: '5.00' },
-    { id: '3', name: 'Vendor name', details: 'Cornello.difficultatesdwedwed...', price: '5.00' },
-    { id: '4', name: 'Vendor name', details: 'Cornello.difficultatesdwedwed...', price: '5.00' },
-    { id: '5', name: 'Vendor name', details: 'Cornello.difficultatesdwedwed...', price: '5.00' },
-    { id: '6', name: 'Vendor name', details: 'Cornello.difficultatesdwedwed...', price: '5.00' },
-    { id: '7', name: 'Vendor name', details: 'Cornello.difficultatesdwedwed...', price: '5.00' },
-    { id: '8', name: 'Vendor name', details: 'Cornello.difficultatesdwedwed...', price: '5.00' },
-  ];
+  const [favourites, setfavourites] = useState();
+  const [loading, setloading] = useState(false);
+
+  useEffect(() => {
+    const fetchFavourites = async () => {
+      try {
+        setloading(true);
+        const userValue = await AsyncStorage.getItem('user');
+        const user = JSON.parse(userValue);
+        const records = await getCollectionByUserID('Favourites', user.uid);
+        setfavourites(records);
+        setloading(false);
+
+      } catch (error) {
+        console.error('Error retrieving Receipts data:', error);
+        Alert.alert('Error', 'Failed to load Receipts data.');
+      }
+    };
+
+    fetchFavourites();
+  }, []);
 
   const renderItem = ({ item }) => (
-    <TouchableOpacity style={styles.itemContainer}>
+    <TouchableOpacity style={styles.itemContainer} onPress={() => { navigation.navigate('SingleBusinessView', { vendor_name: item.name }) }}>
       <View style={styles.avatarContainer}>
-        <Text style={styles.avatarText}>AB</Text>
+        <Image
+          source={{ uri: item.img }}
+          style={styles.mainImage}
+          resizeMode="cover"
+        />
       </View>
       <View style={styles.detailsContainer}>
         <Text style={styles.vendorName}>{item.name}</Text>
         <Text style={styles.vendorDetails}>{item.details}</Text>
       </View>
-      {item.price && (
-        <View style={styles.priceContainer}>
-          <Text style={styles.priceText}>{item.price}</Text>
-        </View>
-      )}
     </TouchableOpacity>
   );
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
@@ -44,6 +55,12 @@ function Favourites({ navigation }) {
         </TouchableOpacity>
       </View>
       <Text style={styles.headerTitle}>Favourites</Text>
+
+      {loading ? (
+        <ActivityIndicator size="large" style={styles.loading} />
+      ) : (
+        <View></View>
+      )}
 
       <FlatList
         data={favourites}
@@ -115,6 +132,13 @@ const styles = StyleSheet.create({
   priceText: {
     color: '#333',
   },
+  mainImage: {
+    width: '100%',
+    height: '100%',
+  },
+  loading: {
+    padding: 10,
+  }
 });
 
 export default Favourites;

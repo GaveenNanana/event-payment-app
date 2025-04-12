@@ -1,15 +1,26 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Keyboard } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Keyboard, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Alert } from "react-native";
 import QRCode from 'react-native-qrcode-svg';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function Vendor_Generate_QR({ navigation }) {
   const [amount, setAmount] = useState('');
   const [discount, setDiscount] = useState('');
   const [isActive, setIsActive] = useState(false);
   const [total, setTotal] = useState(0);
+  const [user, setUser] = useState();
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const user = await AsyncStorage.getItem("user");
+      const userObject = JSON.parse(user);
+      setUser(userObject);
+    };
+    fetchUser();
+  }, []);
 
   const handleAmountChange = (text) => {
     const sanitizedText = text.replace(/[^0-9.]/g, "");
@@ -45,7 +56,7 @@ function Vendor_Generate_QR({ navigation }) {
   // Handle the navigation and pass the QR code data to the next screen
   const handleGenerateQRCode = () => {
     if (isActive) {
-      navigation.navigate('Vendor_ScanToPay', { qrData: total.toString() });
+      navigation.navigate('Vendor_ScanToPay', { qrData: total.toString(), discount: discount.toString() });
     }
   };
 
@@ -62,9 +73,9 @@ function Vendor_Generate_QR({ navigation }) {
       {/* Vendor Profile */}
       <View style={styles.vendorProfile}>
         <View style={styles.vendorAvatar}>
-          <Text style={styles.vendorInitials}>AB</Text>
+          {user && <Image source={{ uri: user.imageURL }} style={styles.mainImage} resizeMode="cover" />}
         </View>
-        <Text style={styles.vendorLabel}>VENDOR</Text>
+        {user && <Text style={styles.vendorLabel}>{user.businessName}</Text>}
       </View>
 
       {/* Form */}
@@ -236,6 +247,10 @@ const styles = StyleSheet.create({
     color: '#00205B',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  mainImage: {
+    width: '100%',
+    height: '100%',
   },
 });
 

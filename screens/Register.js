@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Alert } from "react-native";
-import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { firebase_auth } from '../firebaseConfig';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { addDocument } from '../Services/FirebaseService';
 
 function Register({ navigation }) {
   const [showPassword, setShowPassword] = useState(false);
@@ -14,21 +15,37 @@ function Register({ navigation }) {
     email: '',
     password: ''
   });
+  const [loading, setloading] = useState(false);
 
   const registerFormSubmit = async () => {
     try {
+      setloading(true);
       const response = await createUserWithEmailAndPassword(firebase_auth, formData.email, formData.password)
       const user = response.user;
       await updateProfile(user, {
         displayName: formData.fullName,
       });
-      const userValue = JSON.stringify(user);
+
+      const userObj = {
+        userID: `${user.uid}`,
+        fullname: `${formData.fullName}`,
+        profileImage: "https://png.pngtree.com/png-vector/20220709/ourmid/pngtree-businessman-user-avatar-wearing-suit-with-red-tie-png-image_5809521.png",
+      };
+
+      const docRef = await addDocument('Customers', userObj);
+
+      const userValue = JSON.stringify({
+        ...user,
+        id: userObj.id,
+        profileImage: "https://png.pngtree.com/png-vector/20220709/ourmid/pngtree-businessman-user-avatar-wearing-suit-with-red-tie-png-image_5809521.png",
+        fullname: formData.fullName
+      });
       await AsyncStorage.setItem('user', userValue);
+      setloading(false);
       navigation.navigate('BottomTabNavigation');
 
     } catch (error) {
       console.log(error)
-      console.log(error.code)
       if (error.code == 'auth/weak-password') {
         Alert.alert("Invalid Credentials", "Password is too weak. Please choose a stronger password with more than 6 characters.", [
           { text: "OK" }
@@ -44,20 +61,19 @@ function Register({ navigation }) {
       }
       throw error;
     }
-
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Back Button */}
-      <TouchableOpacity style={styles.backButton}>
-        <Ionicons name="chevron-back" size={24} color="white" />
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => navigation.navigate('Welcome')}
+      >
+        <Ionicons name="arrow-back" size={24} color="white" />
       </TouchableOpacity>
 
-      {/* Title */}
       <Text style={styles.title}>Create a new account</Text>
 
-      {/* Input Fields */}
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
@@ -97,6 +113,12 @@ function Register({ navigation }) {
           </TouchableOpacity>
         </View>
       </View>
+
+      {loading ? (
+        <ActivityIndicator size="large" style={styles.loading} />
+      ) : (
+        <View></View>
+      )}
 
       <TouchableOpacity style={styles.continueButton} onPress={registerFormSubmit}>
         <Text style={styles.continueButtonText}>Register</Text>
@@ -159,6 +181,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  loading: {
+    padding: 20,
+  }
 });
 
 export default Register;

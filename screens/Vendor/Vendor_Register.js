@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function Vendor_Register({ navigation }) {
   const [fullName, setFullName] = useState('');
@@ -13,9 +14,19 @@ function Vendor_Register({ navigation }) {
     setShowPassword(!showPassword);
   };
 
+  const saveForm = async () => {
+    const user = {
+      fullname: fullName,
+      email: email,
+      password: password
+    };
+    const jsonString = JSON.stringify(user);
+    await AsyncStorage.setItem('userObject', jsonString);
+    navigation.navigate('Vendor_Business_Details');
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      {/* Back button */}
       <TouchableOpacity
         style={styles.backButton}
         onPress={() => navigation.goBack()}
@@ -23,10 +34,8 @@ function Vendor_Register({ navigation }) {
         <Ionicons name="arrow-back" size={24} color="white" />
       </TouchableOpacity>
 
-      {/* Header */}
       <Text style={styles.headerText}>Create a new business account</Text>
 
-      {/* Input fields */}
       <View style={styles.formContainer}>
         <TextInput
           style={styles.input}
@@ -56,17 +65,16 @@ function Vendor_Register({ navigation }) {
             secureTextEntry={!showPassword}
           />
           <TouchableOpacity onPress={togglePasswordVisibility} style={styles.eyeIcon}>
-            <Ionicons 
-              name={showPassword ? "eye-off" : "eye"} 
-              size={22} 
-              color="#888" 
+            <Ionicons
+              name={showPassword ? "eye-off" : "eye"}
+              size={22}
+              color="#888"
             />
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* Continue button */}
-      <TouchableOpacity style={styles.continueButton} onPress={() => navigation.navigate('Vendor_Business_Details')}>
+      <TouchableOpacity style={styles.continueButton} onPress={saveForm}>
         <Text style={styles.continueButtonText}>Continue</Text>
       </TouchableOpacity>
     </SafeAreaView>

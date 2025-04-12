@@ -4,13 +4,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Alert } from "react-native";
 import { firebase_auth, firebase_store } from '../../firebaseConfig';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { addDocument } from '../../Services/FirebaseService';
+import { updateDocument } from '../../Services/FirebaseService';
 
-function Vendor_Bank_Details({ navigation }) {
-  const [accountNumber, setAccountNumber] = useState('');
+function Vendor_Update_Bank_Details({ navigation }) {
   const [bank, setBank] = useState('');
+  const [accountNumber, setAccountNumber] = useState('');
   const [showBankDropdown, setShowBankDropdown] = useState(false);
   const [loading, setloading] = useState(false);
 
@@ -36,56 +35,28 @@ function Vendor_Bank_Details({ navigation }) {
     setShowBankDropdown(false);
   };
 
-  const registerBusiness = async () => {
+  const updateBusiness = async () => {
     setloading(true);
-    let JsonString = await AsyncStorage.getItem('userObject');
-    let user = JSON.parse(JsonString);
+    const JsonString = await AsyncStorage.getItem('user');
+    const user = JSON.parse(JsonString);
+
     try {
-      const response = await createUserWithEmailAndPassword(firebase_auth, user.email, user.password)
-      const userResponse = response.user;
-
-      await updateProfile(userResponse, {
-        displayName: user.fullName,
-      });
-
       const userObj = {
-        userID: userResponse.uid,
-        fullname: `${user.fullname}`,
-        email: `${user.email}`,
-        businessName: `${user.businessName}`,
-        address: `${user.address}`,
-        phoneNumber: user.phoneNumber,
-        website: `${user.website}`,
-        about: `${user.about}`,
-        businessCategory: `${user.businessCategory}`,
         bank: `${bank}`,
-        accountNumber: accountNumber,
-        imageURL: ""
+        accountNumber: accountNumber
       };
-      const docRef = await addDocument('users', userObj);
-      userObj.uid = docRef;
-      userObj.id = docRef;
-      const userValue = JSON.stringify(userObj);
 
+      const docRef = await updateDocument("users", user.id, userObj);
+      userObj.uid = docRef;
+      user.bank = bank;
+      user.accountNumber = accountNumber;
+      const userValue = JSON.stringify(user);
       await AsyncStorage.setItem('user', userValue);
       setloading(false);
-      navigation.navigate('BottomTabNav_Vendor');
+      navigation.navigate('Vendor_Withdraw_Earnings');
 
     } catch (error) {
       console.log(error);
-      if (error.code == 'auth/weak-password') {
-        Alert.alert("Invalid Credentials", "Password is too weak. Please choose a stronger password with more than 6 characters.", [
-          { text: "OK" }
-        ]);
-      } else if (error.code == 'auth/email-already-in-use') {
-        Alert.alert("Invalid Credentials", "Current email is already in use. Please use a different email address.", [
-          { text: "OK" }
-        ]);
-      } else {
-        Alert.alert("Error", "Something went wrong. Please try again later.", [
-          { text: "OK" }
-        ]);
-      }
       throw error;
     }
 
@@ -104,7 +75,7 @@ function Vendor_Bank_Details({ navigation }) {
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
       </View>
-      <Text style={styles.headerTitle}>Add bank details</Text>
+      <Text style={styles.headerTitle}>Update bank details</Text>
 
 
       {/* Bank dropdown field */}
@@ -165,7 +136,7 @@ function Vendor_Bank_Details({ navigation }) {
       </View>
 
       {loading ? (
-        <ActivityIndicator size="large" style={styles.loading} />
+        <ActivityIndicator size="large" />
       ) : (
         <View></View>
       )}
@@ -174,9 +145,9 @@ function Vendor_Bank_Details({ navigation }) {
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={styles.submitButton}
-          onPress={registerBusiness}
+          onPress={updateBusiness}
         >
-          <Text style={styles.submitButtonText}>Submit</Text>
+          <Text style={styles.submitButtonText}>Update</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -280,9 +251,6 @@ const styles = StyleSheet.create({
   bankItemText: {
     fontSize: 16,
   },
-  loading: {
-    padding: 10,
-  }
 });
 
-export default Vendor_Bank_Details;
+export default Vendor_Update_Bank_Details;
