@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   menuSection: {
-    paddingHorizontal: 10,
+    paddingHorizontal: 0,
     paddingTop: 12,
     marginTop: 12
   },
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   menuItem: {
-    width: '30%',
+    width: '33%',
     alignItems: 'center',
   },
   menuIconContainer: {
@@ -182,8 +182,10 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   mainImage: {
-    width: '70%',
-    height: '70%',
+    width: '100%',
+    height: '100%',
+    borderRadius: 9999,
+    overflow: 'hidden',
   },
 });
 

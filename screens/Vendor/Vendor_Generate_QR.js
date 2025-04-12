@@ -8,7 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function Vendor_Generate_QR({ navigation }) {
   const [amount, setAmount] = useState('');
-  const [discount, setDiscount] = useState('');
+  const [discount, setDiscount] = useState('0');
   const [isActive, setIsActive] = useState(false);
   const [total, setTotal] = useState(0);
   const [user, setUser] = useState();

@@ -69,6 +69,7 @@ const EditProfile = ({ navigation }) => {
         setloading(false);
         navigation.navigate('BottomTabNavigation');
       } else {
+        setloading(false);
         alert("Image upload failed: " + imageMeta.error);
       }
     } catch (error) {

@@ -25,26 +25,6 @@ function Vendor_ScanToPay({ route, navigation }) {
     return true;
   };
 
-  const captureAndSaveQRCode = async () => {
-    try {
-      const hasPermission = await requestPermission();
-      if (!hasPermission) return;
-
-      if (viewShotRef.current) {
-        const uri = await viewShotRef.current.capture();
-        setQrImageUri(uri);
-
-        const asset = await MediaLibrary.createAssetAsync(uri);
-        await MediaLibrary.createAlbumAsync("QR Codes", asset, false);
-
-        Alert.alert("Success", "QR Code saved to your gallery!");
-      }
-    } catch (error) {
-      console.error("Error saving QR Code:", error);
-      Alert.alert("Error", "Failed to save QR Code.");
-    }
-  };
-
   useEffect(() => {
     const generateQRCode = async () => {
       try {
@@ -101,10 +81,6 @@ function Vendor_ScanToPay({ route, navigation }) {
 
       {/* Bottom Buttons */}
       <View style={styles.bottomButtons}>
-        <TouchableOpacity style={styles.doneButton} onPress={captureAndSaveQRCode}>
-          <Text style={styles.doneButtonText}>Save</Text>
-        </TouchableOpacity>
-
         <TouchableOpacity>
           <Text style={styles.cancelText} onPress={() => { navigation.navigate('BottomTabNav_Vendor'); }}>Cancel</Text>
         </TouchableOpacity>

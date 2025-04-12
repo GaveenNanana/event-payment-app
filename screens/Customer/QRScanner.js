@@ -60,6 +60,7 @@ function QRScanner({ navigation }) {
           )}
           <Button
             title={"Tap to Scan Again"}
+            color="#FFFFFFFF"
             onPress={() => {
               setScanned(false);
               setScannedData('');
@@ -67,6 +68,14 @@ function QRScanner({ navigation }) {
           />
         </View>
       )}
+
+      <View style={styles.cancelContainer}>
+        <Button
+          title={"Cancel"}
+          color="#FFFFFFFF"
+          onPress={() => { navigation.goBack() }}
+        />
+      </View>
     </View>
   );
 }
@@ -105,6 +114,16 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, -0.9)',
   },
   resultContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    padding: 10,
+    borderRadius: 10,
+    position: 'absolute',
+    bottom: 120,
+    zIndex: 2,
+  },
+  cancelContainer: {
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.6)',

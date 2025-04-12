@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { CardField, CardForm, useStripe, StripeProvider } from '@stripe/stripe-react-native';
@@ -18,6 +18,7 @@ function ProceedPay({ route, navigation }) {
   const formattedDate = `${currentDate.toLocaleString('default', { weekday: 'short' })}, ${currentDate.getDate()} ${currentDate.toLocaleString('default', { month: 'short' })} ${currentDate.getFullYear()}`;
 
   const handlePayment = async () => {
+    setLoading(true);
     try {
       const hasBiometric = await LocalAuthentication.hasHardwareAsync();
 
@@ -76,12 +77,15 @@ function ProceedPay({ route, navigation }) {
           };
 
           const QRRef = await addDocument("Payments", paymentInfo);
+          setLoading(false);
           navigation.navigate('PaymentSuccess', { paymentInfo });
         }
       } else {
+        setLoading(false);
         Alert.alert("Payment", "Authentication failed. Please try again.");
       }
     } catch (error) {
+      setLoading(false);
       console.error(error);
       Alert.alert("Error", "An error occurred during authentication: " + error.message);
     }
@@ -122,10 +126,14 @@ function ProceedPay({ route, navigation }) {
           <Text style={styles.amountText}>${scannedData.amount}.00</Text>
 
           {/* Discount badge */}
-          <View style={styles.discountBadge}>
-            <View style={styles.discountDot} />
-            <Text style={styles.discountText}>Discount of ${scannedData.discount_amount} has been applied</Text>
-          </View>
+          {scannedData.discount_amount !== "0" && (
+            <View style={styles.discountBadge}>
+              <View style={styles.discountDot} />
+              <Text style={styles.discountText}>
+                Discount of ${scannedData.discount_amount} has been applied
+              </Text>
+            </View>
+          )}
 
           {/* Payment method section */}
           <View style={[styles.paymentMethodContainer, showCardForm && styles.expandedContainer]}>
@@ -157,12 +165,19 @@ function ProceedPay({ route, navigation }) {
               />
             )}
 
+            {loading ? (
+              <ActivityIndicator size="large" style={styles.loading} />
+            ) : (
+              <View></View>
+            )}
+
             {/* Pay button */}
             <TouchableOpacity
               style={[
                 styles.payButton
               ]}
               onPress={handlePayment}
+              disabled={loading}
             >
               <Text style={styles.payButtonText}>Proceed to Pay</Text>
             </TouchableOpacity>
@@ -334,6 +349,9 @@ const styles = StyleSheet.create({
     marginTop: 20,
     fontWeight: 'bold',
   },
+  loading: {
+    padding: 10,
+  }
 });
 
 export default ProceedPay;

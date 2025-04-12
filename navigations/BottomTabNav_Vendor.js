@@ -28,7 +28,7 @@ const screenOptions = {
     right: 0,
     left: 0,
     elevation: 0,
-    height: 68, // Adjust height for better spacing
+    height: 90,
     backgroundColor: COLORS.white,
     borderRadius: 0,
     // marginHorizontal: 10,
@@ -161,7 +161,7 @@ const BottomTabNav_Vendor = () => {
                 height: "100%",
               }}
             >
-              
+
               <Ionicons name="qr-code-outline"
                 size={26}
                 color={COLORS.icon_color}
@@ -266,7 +266,7 @@ const BottomTabNav_Vendor = () => {
                 height: "100%",
               }}
             >
-              <Ionicons name="person-outline" 
+              <Ionicons name="person-outline"
                 size={28}
                 color={COLORS.icon_color}
                 style={{

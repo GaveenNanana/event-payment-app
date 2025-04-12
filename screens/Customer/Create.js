@@ -12,7 +12,7 @@ function Create({ navigation }) {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
- 
+
       {/* Header */}
       <Text style={styles.headerTitle}>Scan to Pay</Text>
 
@@ -54,8 +54,8 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginTop: 10,
-    marginBottom: 20,
+    marginTop: 45,
+    marginBottom: 10,
   },
   scannerContainer: {
     flex: 1,
@@ -107,8 +107,8 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   qrCode: {
-    width: '110%',
-    height: '110%',
+    width: '100%',
+    height: '100%',
     resizeMode: 'contain',
   },
   bottomSection: {
