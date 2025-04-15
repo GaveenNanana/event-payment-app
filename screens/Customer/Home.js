@@ -191,6 +191,7 @@ const styles = StyleSheet.create({
   },
   placeCard: {
     width: 250,
+    height: 250,
     marginRight: 16,
     backgroundColor: '#f5f5f5',
     borderRadius: 12,
