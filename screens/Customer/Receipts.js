@@ -17,7 +17,8 @@ function Receipts({ navigation }) {
         const user = JSON.parse(userValue);
 
         const records = await getCollectionByUserID('Payments', user.uid);
-        setReceiptsData(records);
+        const sortedRecords = records.sort((a, b) => b.date - a.date);
+        setReceiptsData(sortedRecords);
         setloading(false);
 
       } catch (error) {
@@ -72,9 +73,6 @@ function Receipts({ navigation }) {
                 </View>
               </View>
             </View>
-            <TouchableOpacity style={styles.viewButton}>
-              <Text style={styles.viewButtonText}>View</Text>
-            </TouchableOpacity>
           </View>
         )))}
       </ScrollView>

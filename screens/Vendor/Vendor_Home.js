@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -16,6 +16,7 @@ function Vendor_Home({ navigation }) {
 
   function formatTransactions(data) {
     return data.map((item, index) => {
+
       const dateObj = new Date(item.date);
       const formattedDate = dateObj.toLocaleDateString('en-US', {
         year: 'numeric',
@@ -26,16 +27,18 @@ function Vendor_Home({ navigation }) {
         hour: 'numeric',
         minute: '2-digit'
       });
-
+      const user_image = item.user_photo ? item.user_photo : 'https://png.pngtree.com/png-vector/20220709/ourmid/pngtree-businessman-user-avatar-wearing-suit-with-red-tie-png-image_5809521.png';
       return {
         id: index + 1,
         user: item.user ? item.user.charAt(0).toUpperCase() + item.user.charAt(1).toUpperCase() : '',
+        user_image: user_image,
         orderNumber: `Order ${index + 1}`,
         date: formattedDate,
         time: formattedTime,
         timestamp: item.date,
         amount: parseFloat(item.amount)
       };
+
     });
   }
 
@@ -113,7 +116,7 @@ function Vendor_Home({ navigation }) {
       const formattedData = formatTransactions(transactionData);
       setTransactions(formattedData);
       const selectedData = formattedData
-        .sort((a, b) => b.amount - a.amount)
+        .sort((a, b) => b.timestamp - a.timestamp)
         .slice(0, 5);
       setselectedTransactions(selectedData);
       const todayTotal = getTodayTotal(formattedData);
@@ -182,7 +185,10 @@ function Vendor_Home({ navigation }) {
             <View key={transaction.id} style={styles.transactionItem}>
               <View style={styles.transactionLeft}>
                 <View style={styles.avatar}>
-                  <Text style={styles.avatarText}>{transaction.user}</Text>
+                  <Image
+                    source={{ uri: transaction.user_image }}
+                    style={styles.placeImage}
+                  />
                 </View>
                 <View style={styles.transactionDetails}>
                   <Text style={styles.orderNumber}>{transaction.orderNumber}</Text>
@@ -354,6 +360,12 @@ const styles = StyleSheet.create({
   transactionAmount: {
     fontWeight: 'bold',
   },
+  placeImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 9999,
+    overflow: 'hidden',
+  }
   //   tabContainer: {
   //     flexDirection: 'row',
   //     backgroundColor: 'white',

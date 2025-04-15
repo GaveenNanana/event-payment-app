@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getCollectionByVendor } from '../../Services/FirebaseService';
+import { getCollectionByVendor, addDocument } from '../../Services/FirebaseService';
 
 function Vendor_Withdraw_Earnings({ navigation }) {
 
@@ -11,6 +11,7 @@ function Vendor_Withdraw_Earnings({ navigation }) {
   const [loading, setloading] = useState(false);
 
   const [availableBalance, setAvailableBalance] = useState(0.00);
+  const [withdrawnBalance, setWithdrawnBalance] = useState(0.00);
   const [withdrawalMethod, setWithdrawalMethod] = useState({
     title: 'My bank account',
     number: '0321'
@@ -21,6 +22,30 @@ function Vendor_Withdraw_Earnings({ navigation }) {
       return total + parseFloat(tx.amount || 0);
     }, 0);
   }
+
+  const handleWithdrawals = async () => {
+    try {
+      setloading(true);
+      const user = await AsyncStorage.getItem("user");
+      const userObject = JSON.parse(user);
+      const currentDate = new Date();
+      const timestamp = currentDate.getTime();
+
+      const withdrawInfo = {
+        vendor: userObject.businessName,
+        amount: availableBalance.toFixed(2),
+        date: timestamp
+      };
+
+      const QRRef = await addDocument("Withdrawals", withdrawInfo);
+      setloading(false);
+      navigation.navigate('Vendor_withdraw_Success', { amount: availableBalance.toFixed(2) })
+
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Error", "An error occurred during authentication: " + error.message);
+    }
+  };
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -33,8 +58,11 @@ function Vendor_Withdraw_Earnings({ navigation }) {
         number: userObject.accountNumber
       })
       const transactionData = await getCollectionByVendor("Payments", userObject.businessName)
-      const total = calculateTotalAmount(transactionData);
+      const withdrawalData = await getCollectionByVendor("Withdrawals", userObject.businessName)
+      const totalWithdrawn = calculateTotalAmount(withdrawalData);
+      const total = calculateTotalAmount(transactionData) - totalWithdrawn;
       setAvailableBalance(total);
+      setWithdrawnBalance(totalWithdrawn);
       setloading(false);
     };
     fetchUser();
@@ -53,15 +81,14 @@ function Vendor_Withdraw_Earnings({ navigation }) {
         <View style={styles.headerContainer}>
           <Text style={styles.headerText}>Withdraw Earnings</Text>
         </View>
-        {loading ? (
-          <ActivityIndicator size="large" />
-        ) : (
-          <View></View>
-        )}
-
         <View style={styles.balanceContainer}>
           <Text style={styles.balanceLabel}>Available balance</Text>
           <Text style={styles.balanceAmount}>${availableBalance.toFixed(2)}</Text>
+        </View>
+
+        <View style={styles.balanceContainer}>
+          <Text style={styles.balanceLabel}>Total Withdrew amount</Text>
+          <Text style={styles.withdrawAmount}>${withdrawnBalance.toFixed(2)}</Text>
         </View>
 
         <View style={styles.methodContainer}>
@@ -78,6 +105,12 @@ function Vendor_Withdraw_Earnings({ navigation }) {
           </TouchableOpacity>
         </View>
 
+        {loading ? (
+          <ActivityIndicator size="large" />
+        ) : (
+          <View></View>
+        )}
+
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={[
@@ -87,7 +120,7 @@ function Vendor_Withdraw_Earnings({ navigation }) {
             disabled={isWithdrawDisabled}
             onPress={() => {
               if (!isWithdrawDisabled) {
-                navigation.navigate('Vendor_withdraw_Success', { amount: availableBalance.toFixed(2) })
+                handleWithdrawals();
               }
             }}
           >
@@ -130,6 +163,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: 'green',
   },
+
+  withdrawAmount: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: 'red',
+  },
+
   methodContainer: {
     marginBottom: 24,
   },

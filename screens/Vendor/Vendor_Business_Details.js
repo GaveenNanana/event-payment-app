@@ -32,7 +32,6 @@ function Vendor_Business_Details({ navigation }) {
     user["about"] = formData.about;
     user["businessCategory"] = formData.businessCategory;
     JsonString = JSON.stringify(user);
-    console.log(JsonString);
     await AsyncStorage.setItem('userObject', JsonString);
 
     navigation.navigate('Vendor_Bank_Details');

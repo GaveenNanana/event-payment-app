@@ -70,6 +70,7 @@ function ProceedPay({ route, navigation }) {
 
           const paymentInfo = {
             user_id: userObject.uid,
+            user_photo: userObject.profileImage,
             vendor: scannedData.vendor,
             amount: amount,
             discount_amount: scannedData.discount_amount,

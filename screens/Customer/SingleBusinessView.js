@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, FlatList, Share, Linking, Platform, Alert, TextInput, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, RefreshControl, Image, ScrollView, FlatList, Share, Linking, Platform, Alert, TextInput, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -13,6 +13,7 @@ function Vendor_My_Business({ route, navigation }) {
   const [userRating, setUserRating] = useState(0);
   const [user, setUser] = useState();
   const [loading, setloading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     const fetchVedor = async () => {
@@ -28,12 +29,21 @@ function Vendor_My_Business({ route, navigation }) {
       const vendor = await getVendorByName(vendor_name);
       setvendor(vendor);
       const reviews = await getCollectionByVendor("reviews", vendor_name)
-      setReviews(reviews);
+      const sortedReviews = reviews.sort((a, b) => b.time - a.time);
+      setReviews(sortedReviews);
       setloading(false);
     };
+
     fetchVedor();
   }, []);
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    const reviews = await getCollectionByVendor("reviews", vendor_name)
+    const sortedReviews = reviews.sort((a, b) => b.time - a.time);
+    setReviews(sortedReviews);
+    setRefreshing(false);
+  }, []);
 
   const handleRatingPress = (rating) => {
     setUserRating(rating);
@@ -196,8 +206,12 @@ function Vendor_My_Business({ route, navigation }) {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView>
+    <View style={styles.container}>
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 100 }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }>
         {loading ? (
           <ActivityIndicator size="large" style={styles.loading} />
         ) : (
@@ -316,13 +330,13 @@ function Vendor_My_Business({ route, navigation }) {
           />
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flex: 0,
     backgroundColor: '#fff',
   },
   header: {
@@ -330,7 +344,7 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     width: '100%',
-    height: 220,
+    height: 290,
     position: 'relative',
   },
   mainImage: {
@@ -348,7 +362,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
-    paddingTop: 10,
+    paddingTop: 27,
   },
   backButton: {
     width: 36,

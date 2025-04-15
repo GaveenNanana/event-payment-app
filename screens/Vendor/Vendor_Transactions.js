@@ -24,10 +24,11 @@ function Vendor_Transactions({ navigation }) {
         hour: 'numeric',
         minute: '2-digit'
       });
-
+      const user_image = item.user_photo ? item.user_photo : 'https://png.pngtree.com/png-vector/20220709/ourmid/pngtree-businessman-user-avatar-wearing-suit-with-red-tie-png-image_5809521.png';
       return {
         id: index + 1,
         user: item.user ? item.user.charAt(0).toUpperCase() + item.user.charAt(1).toUpperCase() : '',
+        user_image: user_image,
         orderNumber: `Order ${index + 1}`,
         date: formattedDate,
         time: formattedTime,
@@ -44,7 +45,9 @@ function Vendor_Transactions({ navigation }) {
       const userObject = JSON.parse(user);
       setUser(userObject);
       const transactionData = await getCollectionByVendor("Payments", userObject.businessName)
-      const formattedData = formatTransactions(transactionData);
+      let formattedData = formatTransactions(transactionData);
+      formattedData = formattedData
+        .sort((a, b) => b.timestamp - a.timestamp);
       setTransactions(formattedData);
       setloading(false);
     };
@@ -71,7 +74,10 @@ function Vendor_Transactions({ navigation }) {
           <View key={transaction.id} style={styles.transactionItem}>
             <View style={styles.transactionLeft}>
               <View style={styles.avatar}>
-                <Text style={styles.avatarText}>{transaction.user}</Text>
+                <Image
+                  source={{ uri: transaction.user_image }}
+                  style={styles.placeImage}
+                />
               </View>
               <View style={styles.transactionDetails}>
                 <Text style={styles.orderNumber}>{transaction.orderNumber}</Text>
@@ -309,6 +315,12 @@ const styles = StyleSheet.create({
   transactionAmount: {
     fontWeight: 'bold',
   },
+  placeImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 9999,
+    overflow: 'hidden',
+  }
 
 });
 

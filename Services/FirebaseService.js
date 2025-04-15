@@ -158,7 +158,6 @@ export const deleteUser = async (collectionName, id) => {
 
 export const addImage = async (image, collectionName) => {
     try {
-        console.log(image);
         if (!image || !image.uri) {
             throw new Error("No image provided");
         }
