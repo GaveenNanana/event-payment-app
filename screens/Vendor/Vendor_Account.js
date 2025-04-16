@@ -48,28 +48,28 @@ function Vendor_Account({ navigation }) {
       {/* Menu Items */}
       <View style={styles.menuContainer}>
         <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Vendor_UpdateBusiness')}>
-          <Text style={styles.menuItemText}><Ionicons name="bag-sharp" size={20} color="#000" />  Update Business Details</Text>
+          <Text style={styles.menuItemText}><Ionicons name="business" size={20} color="#000" />  Update Business Details</Text>
           <Ionicons name="chevron-forward" size={24} color="#888" />
         </TouchableOpacity>
 
         <View style={styles.divider} />
 
         <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Vendor_My_Business')}>
-          <Text style={styles.menuItemText}><Ionicons name="bag-sharp" size={20} color="#000" />  My Business </Text>
+          <Text style={styles.menuItemText}><Ionicons name="bag-outline" size={20} color="#000" />  My Business </Text>
           <Ionicons name="chevron-forward" size={24} color="#888" />
         </TouchableOpacity>
 
         <View style={styles.divider} />
 
         <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Vendor_Transactions')}>
-          <Text style={styles.menuItemText}><Ionicons name="bag-sharp" size={20} color="#000" />  My Transactions </Text>
+          <Text style={styles.menuItemText}><Ionicons name="receipt-outline" size={20} color="#000" />  My Transactions </Text>
           <Ionicons name="chevron-forward" size={24} color="#888" />
         </TouchableOpacity>
 
         <View style={styles.divider} />
 
         <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Vendor_Withdraw_Earnings')}>
-          <Text style={styles.menuItemText}><Ionicons name="bag-sharp" size={20} color="#000" />  Withdraw Earnings</Text>
+          <Text style={styles.menuItemText}><Ionicons name="download-outline" size={20} color="#000" />  Withdraw Earnings</Text>
           <Ionicons name="chevron-forward" size={24} color="#888" />
         </TouchableOpacity>
       </View>
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 19,
     paddingHorizontal: 16,
   },
   menuItemText: {

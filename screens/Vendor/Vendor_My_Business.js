@@ -130,7 +130,7 @@ function Vendor_My_Business({ navigation }) {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       {user && <ScrollView>
 
         {/* Food images with overlay */}
@@ -202,7 +202,7 @@ function Vendor_My_Business({ navigation }) {
           />
         </View>
       </ScrollView>}
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     width: '100%',
-    height: 220,
+    height: 250,
     position: 'relative',
   },
   mainImage: {
@@ -235,6 +235,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
+    marginTop: 16,
   },
   timeText: {
     color: '#fff',

@@ -1,18 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Button, View, Text, StyleSheet, TouchableOpacity, TextInput, Image, Keyboard, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Image, Keyboard, ActivityIndicator, TouchableWithoutFeedback } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Alert } from "react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as DocumentPicker from 'expo-document-picker';
+import * as ImagePicker from 'expo-image-picker';
 import { addImage, updateDocument } from '../../Services/FirebaseService';
 
 function Vendor_Update_business({ navigation }) {
-
   const [user, setUser] = useState();
   const [loading, setloading] = useState(false);
-  const [amount, setAmount] = useState('');
-  const [discount, setDiscount] = useState('');
   const [imageForUpload, setImageForUpload] = useState(null);
   const [formData, setFormData] = useState({
     businessName: '',
@@ -48,6 +45,7 @@ function Vendor_Update_business({ navigation }) {
         website: userObject.website,
         about: userObject.about,
         businessCategory: userObject.businessCategory,
+        imageURL: userObject.imageURL,
       }
       setFormData(formObject);
 
@@ -58,19 +56,29 @@ function Vendor_Update_business({ navigation }) {
   const updateFormSubmit = async () => {
     try {
       setloading(true);
-      const imageMeta = await addImage(imageForUpload, "vendor");
-      if (imageMeta.success) {
-        console.log("Image uploaded to Firebase:", imageMeta.url);
-        formData.imageURL = imageMeta.url;
+      if (imageForUpload != null) {
+        const imageMeta = await addImage(imageForUpload, "vendor");
+        if (imageMeta.success) {
+          console.log("Image uploaded to Firebase:", imageMeta.url);
+          formData.imageURL = imageMeta.url;
+          await updateDocument("users", user.id, formData);
+          formData.id = user.id;
+          const userValue = JSON.stringify(formData);
+          await AsyncStorage.setItem('user', userValue);
+          navigation.navigate('BottomTabNav_Vendor');
+        } else {
+          alert("Image upload failed: " + imageMeta.error);
+        }
+      } else {
         await updateDocument("users", user.id, formData);
         formData.id = user.id;
+
         const userValue = JSON.stringify(formData);
+
         await AsyncStorage.setItem('user', userValue);
         navigation.navigate('BottomTabNav_Vendor');
-
-      } else {
-        alert("Image upload failed: " + imageMeta.error);
       }
+
 
     } catch (error) {
       Alert.alert("Invalid Credentials", "Please check your username and password and try again.", [
@@ -83,113 +91,120 @@ function Vendor_Update_business({ navigation }) {
 
   const pickFile = async () => {
     try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: "image/*",
-        copyToCacheDirectory: true,
-        multiple: false,
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (permissionResult.granted === false) {
+        alert("Permission to access gallery is required!");
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsMultipleSelection: false,
+        quality: 1,
       });
 
-      if (!result.canceled && result.assets.length > 0) {
+      if (!result.canceled) {
         const selectedImage = result.assets[0];
         setImageForUpload(selectedImage);
       }
     } catch (err) {
-      console.error("File picking error:", err);
+      console.error("Image picking error:", err);
     }
   };
 
 
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#050C4D" />
-        </TouchableOpacity>
-      </View>
-      <Text style={styles.headerTitle}>Update Business Details</Text>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="#050C4D" />
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.headerTitle}>Update Business Details</Text>
 
-      <View style={styles.formContainer}>
+        <View style={styles.formContainer}>
 
-        <TextInput
-          style={styles.inputReadOnly}
-          placeholder="Business Name"
-          value={formData.businessName}
-          readOnly="true"
-          onChangeText={(text) => handleChange('businessName', text)}
-        />
+          <TextInput
+            style={styles.inputReadOnly}
+            placeholder="Business Name"
+            value={formData.businessName}
+            readOnly="true"
+            onChangeText={(text) => handleChange('businessName', text)}
+          />
 
-        <TextInput
-          style={styles.inputReadOnly}
-          placeholder="Select a business category or enter"
-          value={formData.businessCategory}
-          readOnly="true"
-          onChangeText={(text) => handleChange('businessCategory', text)}
-        />
+          <TextInput
+            style={styles.inputReadOnly}
+            placeholder="Select a business category or enter"
+            value={formData.businessCategory}
+            readOnly="true"
+            onChangeText={(text) => handleChange('businessCategory', text)}
+          />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Address"
-          value={formData.address}
-          onChangeText={(text) => handleChange('address', text)}
-        />
+          <TextInput
+            style={styles.input}
+            placeholder="Address"
+            value={formData.address}
+            onChangeText={(text) => handleChange('address', text)}
+          />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Phone Number"
-          value={formData.phoneNumber}
-          keyboardType="phone-pad"
-          onChangeText={(text) => handleChange('phoneNumber', text)}
-        />
+          <TextInput
+            style={styles.input}
+            placeholder="Phone Number"
+            value={formData.phoneNumber}
+            keyboardType="phone-pad"
+            onChangeText={(text) => handleChange('phoneNumber', text)}
+          />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Website"
-          value={formData.website}
-          keyboardType="url"
-          onChangeText={(text) => handleChange('website', text)}
-        />
+          <TextInput
+            style={styles.input}
+            placeholder="Website"
+            value={formData.website}
+            keyboardType="url"
+            onChangeText={(text) => handleChange('website', text)}
+          />
 
-        <TextInput
-          style={[styles.input, styles.textArea]}
-          placeholder="About"
-          value={formData.about}
-          multiline={true}
-          numberOfLines={4}
-          onChangeText={(text) => handleChange('about', text)}
-        />
+          <TextInput
+            style={[styles.input, styles.textArea]}
+            placeholder="About"
+            value={formData.about}
+            multiline={true}
+            numberOfLines={4}
+            onChangeText={(text) => handleChange('about', text)}
+          />
 
-
-
-        {imageForUpload ? (
-          <View style={styles.rowContainer}>
-            <Image
-              source={{ uri: imageForUpload.uri }}
-              style={styles.thumbnail}
-              resizeMode="cover"
-            />
-            <TouchableOpacity style={styles.imageButton} onPress={pickFile}>
+          {imageForUpload ? (
+            <View style={styles.rowContainer}>
+              <Image
+                source={{ uri: imageForUpload.uri }}
+                style={styles.thumbnail}
+                resizeMode="cover"
+              />
+              <TouchableOpacity style={styles.imageButton} onPress={pickFile}>
+                <Ionicons style={styles.uploadIcon} name="cloud-upload-outline" size={24} color="#FFFFFFFF" />
+                <Text style={styles.imageButtonText}>Update Store Image</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity style={styles.imageButtonBefore} onPress={pickFile}>
               <Ionicons style={styles.uploadIcon} name="cloud-upload-outline" size={24} color="#FFFFFFFF" />
-              <Text style={styles.imageButtonText}>Update Store Image</Text>
+              <Text style={styles.imageButtonText}>Select Store Image</Text>
             </TouchableOpacity>
-          </View>
-        ) : (
-          <TouchableOpacity style={styles.imageButtonBefore} onPress={pickFile}>
-            <Ionicons style={styles.uploadIcon} name="cloud-upload-outline" size={24} color="#FFFFFFFF" />
-            <Text style={styles.imageButtonText}>Select Store Image</Text>
-          </TouchableOpacity>
-        )}
+          )}
 
-        {loading ? (
-          <ActivityIndicator style={styles.loading} size="large" />
-        ) : (
-          <TouchableOpacity style={styles.generateButton} onPress={updateFormSubmit}>
-            <Text style={styles.generateButtonText}>Update Business Info</Text>
-          </TouchableOpacity>
-        )}
+          {loading ? (
+            <ActivityIndicator style={styles.loading} size="large" />
+          ) : (
+            <TouchableOpacity style={styles.generateButton} onPress={updateFormSubmit}>
+              <Text style={styles.generateButtonText}>Update Business Info</Text>
+            </TouchableOpacity>
+          )}
 
-      </View>
-    </SafeAreaView >
+        </View>
+      </SafeAreaView >
+    </TouchableWithoutFeedback>
   );
 }
 

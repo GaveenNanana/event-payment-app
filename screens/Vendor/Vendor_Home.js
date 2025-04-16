@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, RefreshControl, Image, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getUserByUserID, getCollectionByVendor } from '../../Services/FirebaseService';
+import { getCollectionByVendor } from '../../Services/FirebaseService';
 
 function Vendor_Home({ navigation }) {
   const [user, setUser] = useState();
@@ -13,6 +13,8 @@ function Vendor_Home({ navigation }) {
   const [chartData, setchartData] = useState([]);
   const [loading, setloading] = useState(false);
   const [selectedTransactions, setselectedTransactions] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const [maxEarning, setMaxEarning] = useState(0);
 
   function formatTransactions(data) {
     return data.map((item, index) => {
@@ -125,17 +127,38 @@ function Vendor_Home({ navigation }) {
       setYtdTotal(ytdTotal);
       const monthData = getMonthlyTotals(formattedData);
       setchartData(monthData);
+      setMaxEarning(getMaxAmount(monthData))
       setloading(false);
-
     };
     loadInitDate();
   }, []);
 
-  const maxEarning = getMaxAmount(chartData);
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    const transactionData = await getCollectionByVendor("Payments", user.businessName)
+    const formattedData = formatTransactions(transactionData);
+    setTransactions(formattedData);
+    const selectedData = formattedData
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .slice(0, 5);
+    setselectedTransactions(selectedData);
+    const todayTotal = getTodayTotal(formattedData);
+    const ytdTotal = getYearToDateTotal(formattedData);
+    setCurrentTotal(todayTotal);
+    setYtdTotal(ytdTotal);
+    const monthData = getMonthlyTotals(formattedData);
+    setchartData(monthData);
+    setMaxEarning(getMaxAmount(monthData))
+    setRefreshing(false);
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView>
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 100 }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }>
         {/* Header */}
         {user && <Text style={styles.headerText}>{user.businessName}</Text>}
 
@@ -155,7 +178,7 @@ function Vendor_Home({ navigation }) {
         <View style={styles.overviewContainer}>
           <View style={styles.overviewHeader}>
             <Text style={styles.overviewTitle}>Earnings Overview</Text>
-            <Text style={styles.overviewSubtitle}>2024 - 2025</Text>
+            <Text style={styles.overviewSubtitle}>2025 - 2026</Text>
           </View>
           <Text style={styles.weeklyText}>Yearly</Text>
 
